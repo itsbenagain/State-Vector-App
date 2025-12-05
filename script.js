@@ -24,7 +24,7 @@ const STORAGE_LAST_TIME_KEY = "fieldBoardLastTime_v1";
 let stateHistory = []; // [{ t, state }]
 let lastTimestampMs = null;
 
-// DOM references (set after DOMContentLoaded)
+// DOM references
 let boardEl;
 let stateGridEl;
 let paramsEl;
@@ -196,7 +196,6 @@ function loadFromStorageOrDefaults() {
 }
 
 function saveToStorage(state, timestampMs) {
-  // Keep history to a reasonable length
   stateHistory.push({ t: timestampMs, state });
   if (stateHistory.length > 500) {
     stateHistory.shift();
