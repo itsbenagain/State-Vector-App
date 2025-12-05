@@ -22,9 +22,8 @@ const STORAGE_LAST_STATE_KEY = "fieldBoardLastState_v1";
 const STORAGE_LAST_TIME_KEY = "fieldBoardLastTime_v1";
 
 let stateHistory = []; // [{ t, state }]
-let lastTimestampMs = null;
 
-// DOM references
+// DOM refs
 let boardEl;
 let stateGridEl;
 let paramsEl;
@@ -36,11 +35,16 @@ let muValEl;
 let timestampEl;
 let aiAnalysisEl;
 
+// non-linear shaping helpers
+const norm = (v) => v / 5;
+const expo = (x, p) => Math.pow(Math.min(Math.max(x, 0), 1), p);
+
 // -----------------------------------------------------------------------------
-//  INIT
+//  MAIN BOOTSTRAP (runs once, no DOMContentLoaded)
 // -----------------------------------------------------------------------------
 
-document.addEventListener("DOMContentLoaded", () => {
+(function main() {
+  // grab DOM
   boardEl = document.getElementById("board");
   stateGridEl = document.getElementById("stateGrid");
   paramsEl = document.getElementById("parameters");
@@ -52,19 +56,22 @@ document.addEventListener("DOMContentLoaded", () => {
   timestampEl = document.getElementById("timestamp");
   aiAnalysisEl = document.getElementById("ai-analysis");
 
+  if (!boardEl || !stateGridEl) {
+    console.error("Field board: required DOM nodes missing.");
+    return;
+  }
+
   buildSliderCards();
   buildStatePills();
   loadFromStorageOrDefaults();
   attachListeners();
-});
+})();
 
 // -----------------------------------------------------------------------------
 //  BUILD UI
 // -----------------------------------------------------------------------------
 
 function buildSliderCards() {
-  if (!boardEl) return;
-
   dimensions.forEach((dim) => {
     const card = document.createElement("div");
     card.className = "card";
@@ -76,11 +83,12 @@ function buildSliderCards() {
     const wrapper = document.createElement("div");
     wrapper.className = "slider-wrapper";
 
+    // ticks 5..0
     const ticks = document.createElement("div");
     ticks.className = "ticks";
     for (let i = 5; i >= 0; i--) {
       const s = document.createElement("span");
-      s.textContent = i.toString();
+      s.textContent = String(i);
       ticks.appendChild(s);
     }
 
@@ -127,8 +135,6 @@ function buildSliderCards() {
 }
 
 function buildStatePills() {
-  if (!stateGridEl) return;
-
   dimensions.forEach((dim) => {
     const pill = document.createElement("div");
     pill.className = "state-pill";
@@ -153,7 +159,7 @@ function buildStatePills() {
 // -----------------------------------------------------------------------------
 
 function loadFromStorageOrDefaults() {
-  // Load history
+  // history
   try {
     const raw = localStorage.getItem(STORAGE_HISTORY_KEY);
     if (raw) {
@@ -164,31 +170,29 @@ function loadFromStorageOrDefaults() {
     stateHistory = [];
   }
 
-  // Load last state
+  // last state
   let lastState = null;
+  let lastTime = Date.now();
+
   try {
     const rawState = localStorage.getItem(STORAGE_LAST_STATE_KEY);
     if (rawState) {
       const parsed = JSON.parse(rawState);
       if (parsed && typeof parsed === "object") lastState = parsed;
     }
+    const rawTime = localStorage.getItem(STORAGE_LAST_TIME_KEY);
+    if (rawTime) {
+      const t = Number(rawTime);
+      if (!Number.isNaN(t)) lastTime = t;
+    }
   } catch {
     lastState = null;
   }
 
-  // Load last timestamp
-  const rawTime = localStorage.getItem(STORAGE_LAST_TIME_KEY);
-  if (rawTime) {
-    const t = Number(rawTime);
-    if (!Number.isNaN(t)) lastTimestampMs = t;
-  }
-
   if (lastState) {
     applyStateToSliders(lastState);
-    const ts = lastTimestampMs ?? Date.now();
-    updateUI(lastState, ts, { persist: false });
+    updateUI(lastState, lastTime, { persist: false });
   } else {
-    // default mid configuration
     const state = getStateVector();
     const now = Date.now();
     updateUI(state, now, { persist: true });
@@ -197,16 +201,14 @@ function loadFromStorageOrDefaults() {
 
 function saveToStorage(state, timestampMs) {
   stateHistory.push({ t: timestampMs, state });
-  if (stateHistory.length > 500) {
-    stateHistory.shift();
-  }
+  if (stateHistory.length > 500) stateHistory.shift();
 
   try {
     localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
     localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(state));
     localStorage.setItem(STORAGE_LAST_TIME_KEY, String(timestampMs));
   } catch {
-    // ignore storage errors
+    // ignore
   }
 }
 
@@ -215,15 +217,14 @@ function saveToStorage(state, timestampMs) {
 // -----------------------------------------------------------------------------
 
 function attachListeners() {
-  // Slider input
+  // sliders
   dimensions.forEach((dim) => {
     const slider = document.getElementById(dim.id);
     if (!slider) return;
-    slider.addEventListener("input", () => handleSliderChange());
+    slider.addEventListener("input", handleSliderChange);
   });
 
   // +/- buttons
-  if (!boardEl) return;
   const btns = boardEl.querySelectorAll(".slider-btn");
   btns.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -272,10 +273,6 @@ function applyStateToSliders(state) {
     }
   });
 }
-
-// non-linear shaping
-const norm = (v) => v / 5;
-const expo = (x, p) => Math.pow(Math.min(Math.max(x, 0), 1), p);
 
 function computeParameters(state) {
   const {
@@ -334,7 +331,7 @@ function computeParameters(state) {
   lambda = Math.max(0, Math.min(1.5, lambda));
   mu = Math.max(0, Math.min(1.5, mu));
 
-  // Coherence: high constructive, low chaos, decent λ, manageable D
+  // Coherence
   const constructiveAvg =
     (ne +
       nf +
@@ -426,13 +423,13 @@ function updateUI(state, timestampMs, { persist }) {
 }
 
 // -----------------------------------------------------------------------------
-//  "AI" ANALYSIS (LOCAL, NO BACKEND)
+//  "AI" ANALYSIS (LOCAL)
 // -----------------------------------------------------------------------------
 
 function updateAIAnalysis(state, params) {
   if (!aiAnalysisEl) return;
 
-  const { D, lambda, mu, coherencePercent, tensionScale } = params;
+  const { D, lambda, mu, coherencePercent } = params;
   const chaosLevel = normalizeChaos(state.chaosLoad);
 
   let coherenceText;
@@ -489,10 +486,7 @@ function updateAIAnalysis(state, params) {
 
   aiAnalysisEl.textContent =
     `Current field read: the configuration is ${coherenceText} ` +
-    `${chaosText} ` +
-    `${Dtext} ` +
-    `${lambdaText} ` +
-    `${muText}`;
+    `${chaosText} ${Dtext} ${lambdaText} ${muText}`;
 }
 
 function normalizeChaos(chaosVal) {
