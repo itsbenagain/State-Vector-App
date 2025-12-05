@@ -43,11 +43,12 @@ loadHistory();
 
 
 // ------------------------
-//  BUILD THE UI (sliders)
+//  BUILD THE UI (sliders + +/- buttons)
 // ------------------------
 
 function makeBoard() {
   const board = document.getElementById("board");
+  if (!board) return;
 
   DIMENSIONS.forEach(id => {
     const box = document.createElement("div");
@@ -55,19 +56,87 @@ function makeBoard() {
 
     box.innerHTML = `
       <h3>${id.replace(/_/g, " ")}</h3>
-      <input id="${id}" class="slider" type="range" min="0" max="5" step="1" value="3"/>
+      <div class="slider-wrapper">
+        <div class="ticks">
+          <span>5</span>
+          <span>4</span>
+          <span>3</span>
+          <span>2</span>
+          <span>1</span>
+          <span>0</span>
+        </div>
+        <div class="slider-and-buttons">
+          <button type="button" class="slider-btn minus" data-id="${id}">-</button>
+          <input id="${id}" class="slider" type="range" min="0" max="5" step="1" value="3" />
+          <button type="button" class="slider-btn plus" data-id="${id}">+</button>
+        </div>
+      </div>
     `;
 
     board.appendChild(box);
   });
 
-  // Add listeners
+  // slider listeners
   DIMENSIONS.forEach(id => {
-    document.getElementById(id).addEventListener("input", logCurrentState);
+    const slider = document.getElementById(id);
+    if (slider) {
+      slider.addEventListener("input", logCurrentState);
+    }
+  });
+
+  // +/- button listeners
+  const buttons = board.querySelectorAll(".slider-btn");
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
+      if (!id) return;
+      const delta = btn.classList.contains("minus") ? -1 : 1;
+      adjustSlider(id, delta);
+    });
   });
 }
 
-makeBoard();
+function adjustSlider(id, delta) {
+  const slider = document.getElementById(id);
+  if (!slider) return;
+  let value = Number(slider.value) + delta;
+  if (value < 0) value = 0;
+  if (value > 5) value = 5;
+  slider.value = value;
+  logCurrentState();
+}
+
+
+// ------------------------
+//  INITIALIZE FROM HISTORY
+// ------------------------
+
+function initializeBoardFromHistory() {
+  if (stateHistory.length === 0) return;
+  const last = stateHistory[stateHistory.length - 1].x;
+  if (!last || !Array.isArray(last)) return;
+
+  DIMENSIONS.forEach((id, idx) => {
+    const slider = document.getElementById(id);
+    if (slider && typeof last[idx] === "number") {
+      slider.value = last[idx];
+    }
+  });
+
+  updateDynamicParameters();
+  renderStateVector();
+  enlargeOutputFonts();
+}
+
+function enlargeOutputFonts() {
+  const ids = ["state-vector-display", "field-feedback", "equation-live", "ai-analysis"];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.style.fontSize = "1.2rem";
+    }
+  });
+}
 
 
 // ------------------------
@@ -139,6 +208,7 @@ function updateDynamicParameters() {
 
   renderFeedback();
   renderEquationLive();
+  updateAIAnalysis();
 }
 
 
@@ -148,15 +218,19 @@ function updateDynamicParameters() {
 
 function renderStateVector() {
   const el = document.getElementById("state-vector-display");
+  if (!el || stateHistory.length === 0) return;
 
-  if (stateHistory.length === 0) return;
   const { x } = stateHistory[stateHistory.length - 1];
 
-  el.textContent = `State Vector: [${x.map((v, i) => `${DIMENSIONS[i]}=${v}`).join(", ")}]`;
+  el.textContent = `State Vector: [${x
+    .map((v, i) => `${DIMENSIONS[i]}=${v}`)
+    .join(", ")}]`;
 }
 
 function renderFeedback() {
   const el = document.getElementById("field-feedback");
+  if (!el) return;
+
   const { D, lambda, mu, coherence, tension } = currentParams;
 
   el.textContent =
@@ -167,38 +241,44 @@ function renderFeedback() {
 
 function renderEquationLive() {
   const el = document.getElementById("equation-live");
+  if (!el) return;
+
   const { D, lambda, mu } = currentParams;
 
   el.textContent =
     `i ∂ψ/∂t (t,z) = - ${D.toFixed(3)} ∇ᵗ_z ∇_z ψ(t,z) + ` +
     `(${lambda.toFixed(3)} / |z|²) ψ(t,z) + ` +
- function makeBoard() {
-  const board = document.getElementById("board");
-
-  DIMENSIONS.forEach(id => {
-    const box = document.createElement("div");
-    box.className = "slider-box";
-
-    box.innerHTML = `
-      <h3>${id.replace(/_/g, " ")}</h3>
-      <div class="slider-wrapper">
-        <div class="ticks">
-          <span>5</span>
-          <span>4</span>
-          <span>3</span>
-          <span>2</span>
-          <span>1</span>
-          <span>0</span>
-        </div>
-        <input id="${id}" class="slider" type="range" min="0" max="5" step="1" value="3" />
-      </div>
-    `;
-
-    board.appendChild(box);
-  });
-
-  // listeners
-  DIMENSIONS.forEach(id => {
-    document.getElementById(id).addEventListener("input", logCurrentState);
-  });
+    `${mu.toFixed(3)} ψ(t,z)`;
 }
+
+
+// ------------------------
+//  AI ANALYSIS HOOK
+// ------------------------
+
+function buildAnalysisPayload() {
+  // Full state vector history + current parameters for AI
+  return {
+    stateHistory,
+    currentParams
+  };
+}
+
+function updateAIAnalysis() {
+  const el = document.getElementById("ai-analysis");
+  if (!el) return;
+
+  const payload = buildAnalysisPayload();
+
+  // Placeholder text – you can replace this with an API call to your backend/LLM
+  el.textContent = "AI analysis payload (hook):\n" +
+    JSON.stringify(payload, null, 2);
+}
+
+
+// ------------------------
+//  INIT
+// ------------------------
+
+makeBoard();
+initializeBoardFromHistory();
