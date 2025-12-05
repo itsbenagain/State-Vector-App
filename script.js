@@ -65,7 +65,7 @@ function makeBoard() {
           <span>1</span>
           <span>0</span>
         </div>
-        <div class="slider-and-buttons">
+        <div class="slider-controls">
           <button type="button" class="slider-btn minus" data-id="${id}">-</button>
           <input id="${id}" class="slider" type="range" min="0" max="5" step="1" value="3" />
           <button type="button" class="slider-btn plus" data-id="${id}">+</button>
@@ -134,6 +134,7 @@ function enlargeOutputFonts() {
     const el = document.getElementById(id);
     if (el) {
       el.style.fontSize = "1.2rem";
+      el.style.lineHeight = "1.4";
     }
   });
 }
@@ -167,7 +168,7 @@ function updateDynamicParameters() {
   if (stateHistory.length === 0) return;
 
   const now = Date.now();
-  const windowMs = 24 * 60 * 60 * 1000; // 24 hours
+  const windowMs = 24 * 60 * 60 * 1000; // last 24 hours
 
   const recent = stateHistory.filter(p => now - p.t <= windowMs);
   if (recent.length === 0) return;
@@ -192,7 +193,11 @@ function updateDynamicParameters() {
     const dt = (cur.t - prev.t) / 1000;
     if (dt <= 0) continue;
 
-    const dx = cur.x.reduce((acc, v, k) => acc + Math.abs(v - prev.x[k]), 0) / cur.x.length;
+    const dx = cur.x.reduce(
+      (acc, v, k) => acc + Math.abs(v - prev.x[k]),
+      0
+    ) / cur.x.length;
+
     jitterSum += dx / dt;
     dtCount++;
   }
@@ -246,9 +251,9 @@ function renderEquationLive() {
   const { D, lambda, mu } = currentParams;
 
   el.textContent =
-    `i ∂ψ/∂t (t,z) = - ${D.toFixed(3)} ∇ᵗ_z ∇_z ψ(t,z) + ` +
-    `(${lambda.toFixed(3)} / |z|²) ψ(t,z) + ` +
-    `${mu.toFixed(3)} ψ(t,z)`;
+    `i ∂ψ/∂t (t,z) = - ${D.toFixed(3)} ∇ᵗ_z ∇_z ψ(t,z) ` +
+    `+ (${lambda.toFixed(3)} / |z|²) ψ(t,z) ` +
+    `+ ${mu.toFixed(3)} ψ(t,z)`;
 }
 
 
@@ -257,22 +262,37 @@ function renderEquationLive() {
 // ------------------------
 
 function buildAnalysisPayload() {
-  // Full state vector history + current parameters for AI
   return {
-    stateHistory,
-    currentParams
+    dimensions: DIMENSIONS,
+    currentParams,
+    stateHistory
   };
 }
 
-function updateAIAnalysis() {
+async function updateAIAnalysis() {
   const el = document.getElementById("ai-analysis");
   if (!el) return;
 
   const payload = buildAnalysisPayload();
+  el.textContent = "Analyzing field configuration...";
 
-  // Placeholder text – you can replace this with an API call to your backend/LLM
-  el.textContent = "AI analysis payload (hook):\n" +
-    JSON.stringify(payload, null, 2);
+  try {
+    const res = await fetch("/field-analysis", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      throw new Error("Server error");
+    }
+
+    const data = await res.json();
+    el.textContent = data.text || "(No analysis returned)";
+  } catch (err) {
+    console.error(err);
+    el.textContent = "AI analysis failed. Check server / console.";
+  }
 }
 
 
@@ -280,5 +300,8 @@ function updateAIAnalysis() {
 //  INIT
 // ------------------------
 
-makeBoard();
-initializeBoardFromHistory();
+(function init() {
+  makeBoard();
+  initializeBoardFromHistory();
+  enlargeOutputFonts();
+})();
