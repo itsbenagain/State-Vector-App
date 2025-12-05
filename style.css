@@ -1,0 +1,50 @@
+.ticks {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* spread 5..0 over full height */
+  height: 150px;                  /* match slider height */
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0.8;
+  margin-right: 4px;
+}
+/* === FORCE RIGHT PANEL TO BE MORE LEGIBLE === */
+
+.panel {
+  font-size: 1.15rem !important;        /* base scale up */
+}
+
+.panel h1 {
+  font-size: 2.2rem !important;         /* big title */
+}
+
+.panel-section-title {
+  font-size: 1.25rem !important;        /* section headers */
+}
+
+.state-line {
+  font-size: 1.15rem !important;        /* state vector + parameter text */
+}
+
+pre {
+  font-size: 1.35rem !important;        /* equation itself */
+  line-height: 1.55 !important;
+}
+
+.pill {
+  font-size: 1.1rem !important;
+  padding: 8px 16px !important;
+}
+
+.pill span.label {
+  font-size: 0.95rem !important;
+}
+
+.pill span.value {
+  font-size: 1.15rem !important;
+}
+
+/* Makes the right panel take up some real visual space */
+.panel {
+  min-width: 500px !important;
+}
