@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>StateBoard – Unified Consciousness Field</title>
+  <title>StateBoard</title>
   <style>
     * {
       box-sizing: border-box;
@@ -19,79 +19,30 @@
       display: flex;
       justify-content: center;
       align-items: stretch;
-      padding: 12px;
+      padding: 10px;
     }
 
     .app {
       display: grid;
-      grid-template-columns: 3fr 2.5fr;
-      gap: 12px;
+      grid-template-columns: minmax(0, 3fr) minmax(420px, 2.5fr);
+      gap: 10px;
       width: 100%;
       max-width: 1280px;
-      transform: scale(0.9);
-      transform-origin: top center;
-    }
-
-    @media (max-width: 1200px) {
-      .app {
-        transform: scale(0.85);
-      }
+      margin: 0 auto;
     }
 
     @media (max-width: 1024px) {
       .app {
         grid-template-columns: 1fr;
-        transform: scale(0.95);
       }
     }
 
-    @media (max-width: 800px) {
+    @media (max-width: 768px) {
       body {
         padding: 6px;
       }
       .app {
-        max-width: 100%;
-        transform: scale(0.9);
-      }
-    }
-
-    /* Extra mobile tuning: bigger buttons + text */
-    @media (max-width: 650px) {
-      .app {
-        transform: scale(1);
-        max-width: 100%;
-      }
-
-      .panel {
-        font-size: 1.05rem;
-      }
-
-      .panel-header h1 {
-        font-size: 1.4rem;
-      }
-
-      .state-line,
-      .ai-analysis {
-        font-size: 0.98rem;
-      }
-
-      .slider-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 1rem;
-      }
-
-      .card h3 {
-        font-size: 0.8rem;
-      }
-
-      .state-pill {
-        padding: 6px 9px;
-        font-size: 0.78rem;
-      }
-
-      .state-pill .value {
-        font-size: 0.86rem;
+        grid-template-columns: 1fr;
       }
     }
 
@@ -101,12 +52,18 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       grid-auto-rows: minmax(0, 1fr);
-      gap: 10px;
+      gap: 8px;
     }
 
     @media (max-width: 1024px) {
       .board {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -117,22 +74,22 @@
         #0c0e14 60%,
         #05060a 100%
       );
-      border-radius: 14px;
-      padding: 10px 8px 12px;
+      border-radius: 12px;
+      padding: 10px 6px 10px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04),
-        0 16px 30px rgba(0, 0, 0, 0.85);
+        0 16px 26px rgba(0, 0, 0, 0.8);
     }
 
     .card h3 {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       text-align: center;
     }
 
@@ -145,10 +102,10 @@
 
     .ticks {
       display: flex;
-      flex-direction: column;          /* 5 at top, 0 at bottom */
+      flex-direction: column;
       justify-content: space-between;
-      height: 120px;
-      font-size: 0.6rem;
+      height: 100px;
+      font-size: 0.58rem;
       color: #a0a4b4;
       line-height: 1.1;
       margin-right: 2px;
@@ -162,7 +119,7 @@
       writing-mode: bt-lr;
       -webkit-appearance: slider-vertical;
       width: 8px;
-      height: 120px;
+      height: 100px;
       accent-color: #45e0ff;
     }
 
@@ -174,13 +131,13 @@
     }
 
     .slider-btn {
-      width: 22px;
-      height: 22px;
-      border-radius: 7px;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
       border: 1px solid rgba(132, 189, 255, 0.4);
       background: radial-gradient(circle at top, #242c3b 0%, #151925 70%);
       color: #f4f7ff;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       line-height: 1;
       cursor: pointer;
       display: flex;
@@ -198,7 +155,7 @@
 
     .value-label {
       margin-top: 4px;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: #c0c4d4;
     }
 
@@ -212,162 +169,243 @@
         #05060a 100%
       );
       border-radius: 14px;
-      padding: 14px 16px 12px;
+
+      padding: 10px 14px 8px;
+
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04),
         0 16px 30px rgba(0, 0, 0, 0.9);
+
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      font-size: 0.95rem;
-      max-height: calc(100vh - 20px);
+
+      gap: 8px;
+
+      font-size: 0.9rem;
+
+      max-height: calc(100vh - 8px);
+
       overflow: hidden;
     }
 
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-    }
-
     .panel-header h1 {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .panel-header span {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       color: #9ea3b5;
     }
 
     .panel-section-title {
-      font-size: 0.86rem;
+      font-size: 0.8rem;
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: #8fb5ff;
+      margin-bottom: 0;
+    }
+
+    .panel pre {
+      font-size: 0.9rem;
+      padding: 6px 8px;
+      margin-top: 2px;
       margin-bottom: 2px;
     }
 
+    .state-line {
+      font-size: 0.86rem;
+    }
+
+    .ai-analysis {
+      font-size: 0.86rem;
+    }
+
+    .state-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
     .state-label-line {
-      font-size: 0.84rem;
+      font-size: 0.78rem;
       color: #c3c7da;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     .state-label-line span {
       color: #8b90a8;
-      font-size: 0.78rem;
+      font-size: 0.74rem;
       margin-left: 6px;
     }
-
-    /* STATE GRID / PILLS */
 
     .state-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-      margin-bottom: 4px;
+      gap: 5px;
+      margin-bottom: 2px;
     }
 
     .state-pill {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.72rem;
-      border-radius: 12px;
-      padding: 5px 8px;
+      font-size: 0.68rem;
+      border-radius: 10px;
+      padding: 4px 7px;
       background: linear-gradient(130deg, #1d2536, #141722);
       border: 1px solid rgba(167, 196, 255, 0.32);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 4px;
+      gap: 3px;
       white-space: nowrap;
     }
 
     .state-pill .label {
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
       color: #aab2d3;
-      font-size: 0.72rem;
+      font-size: 0.66rem;
     }
 
     .state-pill .value {
       color: #e7f4ff;
       font-weight: 600;
-      font-size: 0.8rem;
+      font-size: 0.74rem;
     }
-
-    /* EQUATION BLOCK */
 
     pre {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.96rem;
+      font-size: 0.86rem;
       background: rgba(0, 0, 0, 0.35);
-      padding: 10px 12px;
-      border-radius: 10px;
+      padding: 6px 10px;
+      border-radius: 8px;
       overflow: auto;
-      line-height: 1.4;
+      line-height: 1.3;
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    /* PARAMETER LINE */
+    .panel-section {
+      margin-bottom: 2px;
+    }
 
     .state-line {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.9rem;
+      font-size: 0.86rem;
       white-space: pre-wrap;
       word-break: break-word;
     }
 
-    /* METRICS PILLS */
-
     .metrics-row {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 6px;
+      flex-wrap: nowrap;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 0.78rem;
     }
 
     .pill {
-      font-size: 0.9rem;
       border-radius: 999px;
-      padding: 6px 12px;
+      padding: 4px 9px;
       background: linear-gradient(120deg, #1f2a3f, #151a26);
       border: 1px solid rgba(170, 202, 255, 0.32);
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      white-space: nowrap;
     }
 
     .pill span.label {
       color: #9da5c4;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 0.76rem;
+      letter-spacing: 0.07em;
+      font-size: 0.7rem;
     }
 
     .pill span.value {
       color: #e6f5ff;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
     }
-
-    /* AI ANALYSIS TEXT */
 
     .ai-analysis {
-      margin-top: 4px;
-      font-size: 0.9rem;
+      margin-top: 2px;
+      font-size: 0.86rem;
       color: #d0d4ea;
+      max-height: 110px;
+      overflow-y: auto;
     }
 
-    /* FOOTER */
+    .history-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .history-window {
+      font-size: 0.76rem;
+      color: #c0c4d4;
+      white-space: nowrap;
+    }
+
+    .history-window select {
+      background: #11131c;
+      border-radius: 999px;
+      border: 1px solid rgba(170, 202, 255, 0.5);
+      color: #e6f2ff;
+      padding: 2px 8px;
+      font-size: 0.74rem;
+    }
+
+    .history-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      margin-bottom: 4px;
+      font-size: 0.72rem;
+    }
+
+    .history-filters label {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      white-space: nowrap;
+    }
+
+    .history-filters input[type="checkbox"] {
+      accent-color: #45e0ff;
+    }
+
+    #historyCanvas {
+      width: 100%;
+      height: 160px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
     .footer-note {
       margin-top: auto;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       color: #727894;
       text-align: right;
+      padding-top: 4px;
+    }
+
+    @media (max-width: 650px) {
+      .panel {
+        max-height: none;
+      }
+      .panel-header h1 {
+        font-size: 1.2rem;
+      }
+      #historyCanvas {
+        height: 140px;
+      }
     }
   </style>
 </head>
@@ -379,31 +417,37 @@
     <!-- RIGHT: Equation / Parameters Panel -->
     <div class="panel">
       <div class="panel-header">
-        <h1>StateBoard</h1>
+        <h1>STATEBOARD</h1>
         <span id="timestamp">Last change: —</span>
       </div>
 
-      <div>
-        <div class="panel-section-title">State Vector</div>
-        <div class="state-label-line">
-          x = x*(t) <span>(current configuration)</span>
+      <div class="panel-section">
+        <div class="state-header">
+          <div class="panel-section-title">Unified Consciousness Field Board</div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="state-header">
+          <div class="panel-section-title">State Vector</div>
+          <div class="state-label-line">
+            x = x*(t) <span>(current configuration)</span>
+          </div>
         </div>
         <div id="stateGrid" class="state-grid"></div>
       </div>
 
-      <div>
+      <div class="panel-section">
         <div class="panel-section-title">
           Unified Consciousness Field (working form)
         </div>
-        <pre>
-i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
-                + ( λ / |z|² ) ψ(t, z)
-                + μ ψ*(t, 1/z)
-∇<sub>z</sub> = ∂/∂z + A<sub>z</sub>(z, z̄)
-        </pre>
+        <pre>i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
+            + ( λ / |z|² ) ψ(t, z)
+            + μ ψ*(t, 1/z)
+∇<sub>z</sub> = ∂/∂z + A<sub>z</sub>(z, z̄)</pre>
       </div>
 
-      <div>
+      <div class="panel-section">
         <div class="panel-section-title">Current Parameters from Board</div>
         <div id="parameters" class="state-line"></div>
         <div class="metrics-row">
@@ -430,12 +474,32 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         </div>
       </div>
 
-      <div>
-        <div class="panel-section-title">Field Analysis</div>
+      <div class="panel-section">
+        <div class="panel-section-title">Field Analysis (AI-style)</div>
         <div id="ai-analysis" class="state-line ai-analysis">
           Adjust the board to get a live reading of how coherent, intense, and
           reconfiguring your current field is.
         </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="history-header-row">
+          <div class="panel-section-title">Field History</div>
+          <div class="history-window">
+            Window:
+            <select id="windowSelect">
+              <option value="10m" selected>10 min</option>
+              <option value="1h">1 hour</option>
+              <option value="6h">6 hours</option>
+              <option value="1d">Day</option>
+              <option value="1w">Week</option>
+              <option value="1M">Month</option>
+              <option value="1Y">Year</option>
+            </select>
+          </div>
+        </div>
+        <div id="historyFilters" class="history-filters"></div>
+        <canvas id="historyCanvas"></canvas>
       </div>
 
       <div class="footer-note">
@@ -470,8 +534,37 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     let stateHistory = [];
     let lastTimestampMs = null;
 
-    let boardEl, stateGridEl, paramsEl, coherenceEl, tensionEl,
-      dValEl, lambdaValEl, muValEl, timestampEl, aiAnalysisEl;
+    // NEW: smoothed state for behavioral smoothing
+    let smoothedState = null;
+    let lastSmoothedTime = null;
+
+    let boardEl,
+      stateGridEl,
+      paramsEl,
+      coherenceEl,
+      tensionEl,
+      dValEl,
+      lambdaValEl,
+      muValEl,
+      timestampEl,
+      aiAnalysisEl,
+      historyCanvas,
+      historyCtx,
+      windowSelectEl,
+      historyFiltersEl;
+
+    const WINDOW_MS = {
+      "10m": 10 * 60 * 1000,
+      "1h": 60 * 60 * 1000,
+      "6h": 6 * 60 * 60 * 1000,
+      "1d": 24 * 60 * 60 * 1000,
+      "1w": 7 * 24 * 60 * 60 * 1000,
+      "1M": 30 * 24 * 60 * 60 * 1000,
+      "1Y": 365 * 24 * 60 * 60 * 1000
+    };
+
+    let activeWindowKey = "10m";
+    const activeDimensions = new Set(dimensions.map(d => d.id)); // default all on
 
     document.addEventListener("DOMContentLoaded", () => {
       boardEl = document.getElementById("board");
@@ -484,11 +577,17 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       muValEl = document.getElementById("muVal");
       timestampEl = document.getElementById("timestamp");
       aiAnalysisEl = document.getElementById("ai-analysis");
+      historyCanvas = document.getElementById("historyCanvas");
+      historyCtx = historyCanvas.getContext("2d");
+      windowSelectEl = document.getElementById("windowSelect");
+      historyFiltersEl = document.getElementById("historyFilters");
 
       buildSliderCards();
       buildStatePills();
+      buildHistoryFilters();
       loadFromStorageOrDefaults();
       attachListeners();
+      renderHistory();
     });
 
     // -------------------------------------------------------------------------
@@ -511,7 +610,6 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
 
         const ticks = document.createElement("div");
         ticks.className = "ticks";
-        // 5 at top, 0 at bottom
         for (let i = 5; i >= 0; i--) {
           const s = document.createElement("span");
           s.textContent = i.toString();
@@ -582,6 +680,27 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       });
     }
 
+    function buildHistoryFilters() {
+      if (!historyFiltersEl) return;
+
+      historyFiltersEl.innerHTML = "";
+      dimensions.forEach((dim) => {
+        const label = document.createElement("label");
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = true;
+        cb.value = dim.id;
+        cb.addEventListener("change", () => {
+          if (cb.checked) activeDimensions.add(dim.id);
+          else activeDimensions.delete(dim.id);
+          renderHistory();
+        });
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(dim.label));
+        historyFiltersEl.appendChild(label);
+      });
+    }
+
     // -------------------------------------------------------------------------
     //  STORAGE
     // -------------------------------------------------------------------------
@@ -627,7 +746,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
 
     function saveToStorage(state, timestampMs) {
       stateHistory.push({ t: timestampMs, state });
-      if (stateHistory.length > 500) {
+      if (stateHistory.length > 600) {
         stateHistory.shift();
       }
 
@@ -651,23 +770,37 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         slider.addEventListener("input", () => handleSliderChange());
       });
 
-      if (!boardEl) return;
-      const btns = boardEl.querySelectorAll(".slider-btn");
-      btns.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const id = btn.dataset.id;
-          if (!id) return;
-          const slider = document.getElementById(id);
-          if (!slider) return;
-          let value = Number(slider.value);
-          if (btn.classList.contains("plus")) value += 1;
-          if (btn.classList.contains("minus")) value -= 1;
-          if (value < 0) value = 0;
-          if (value > 5) value = 5;
-          slider.value = String(value);
-          handleSliderChange();
+      if (boardEl) {
+        const btns = boardEl.querySelectorAll(".slider-btn");
+        btns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const id = btn.dataset.id;
+            if (!id) return;
+            const slider = document.getElementById(id);
+            if (!slider) return;
+            let value = Number(slider.value);
+            if (btn.classList.contains("plus")) value += 1;
+            if (btn.classList.contains("minus")) value -= 1;
+            if (value < 0) value = 0;
+            if (value > 5) value = 5;
+            slider.value = String(value);
+            handleSliderChange();
+          });
         });
+      }
+
+      if (windowSelectEl) {
+        windowSelectEl.addEventListener("change", () => {
+          activeWindowKey = windowSelectEl.value;
+          renderHistory();
+        });
+      }
+
+      window.addEventListener("resize", () => {
+        resizeCanvas();
+        renderHistory();
       });
+      resizeCanvas();
     }
 
     function handleSliderChange() {
@@ -699,42 +832,6 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
           slider.value = String(v);
         }
       });
-    }
-
-    // --- smoothing over recent history --------------------------------------
-
-    function getSmoothedState(currentState) {
-      // If no history, just use current
-      if (!stateHistory.length) return currentState;
-
-      const now = stateHistory[stateHistory.length - 1].t;
-      const windowMs = 10 * 60 * 1000; // last 10 minutes
-      const recent = stateHistory.filter(p => now - p.t <= windowMs);
-
-      let samples = recent;
-      if (!samples.length) {
-        // fallback: last 10 samples if window is empty
-        samples = stateHistory.slice(-10);
-      }
-      if (!samples.length) return currentState;
-
-      const acc = {};
-      dimensions.forEach(d => { acc[d.id] = 0; });
-
-      samples.forEach(p => {
-        const s = p.state || {};
-        dimensions.forEach(d => {
-          const v = (typeof s[d.id] === "number") ? s[d.id] : currentState[d.id];
-          acc[d.id] += v;
-        });
-      });
-
-      const smoothed = {};
-      dimensions.forEach(d => {
-        smoothed[d.id] = acc[d.id] / samples.length;
-      });
-
-      return smoothed;
     }
 
     const norm = (v) => v / 5;
@@ -769,14 +866,12 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       const ncl = expo(norm(chaosLoad), 1.0);
       const nlt = expo(norm(longTermTrajectory), 1.05);
 
-      // D (exploration / looseness)
       let D =
         0.3 * (1 - nf) +
         0.25 * (1 - nsg) +
         0.25 * (1 - nen) +
         0.4 * ncl;
 
-      // λ (pull of core trajectory)
       let lambda =
         0.25 * ne +
         0.18 * nm +
@@ -786,7 +881,6 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         0.09 * nh +
         0.08 * nlt;
 
-      // μ (reframing / inversion)
       let mu =
         0.4 * nco +
         0.25 * ncl +
@@ -805,7 +899,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         0.15 * (lambda / 1.5) -
         0.15 * ncl -
         0.1 * (D / 1.6) +
-        0.05; // baseline offset
+        0.05;
 
       coherence = Math.max(0, Math.min(1, coherence));
       const coherencePercent = Math.round(coherence * 100);
@@ -824,28 +918,56 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     }
 
     // -------------------------------------------------------------------------
-    //  UI UPDATE
+    //  UI UPDATE  (NOW SMOOTHED)
     // -------------------------------------------------------------------------
 
     function updateUI(state, timestampMs, { persist }) {
-      // Update labels/pills with raw, instantaneous slider positions
+      // raw labels/pills stay literal
       dimensions.forEach((d) => {
         const v = state[d.id];
         const labelEl = document.getElementById(d.id + "-value");
         const pillEl = document.getElementById(d.id + "-pill");
-        if (labelEl) labelEl.textContent = String(Math.round(v));
-        if (pillEl) pillEl.textContent = String(Math.round(v));
+        if (labelEl) labelEl.textContent = String(v);
+        if (pillEl) pillEl.textContent = String(v);
       });
 
-      if (persist) {
-        saveToStorage(state, timestampMs);
+      // --- NEW: temporal smoothing of underlying state for metrics / AI text ---
+      if (!smoothedState) {
+        // first time, just adopt the current state
+        smoothedState = { ...state };
+        lastSmoothedTime = timestampMs;
+      } else {
+        const now = timestampMs;
+        const prevTime = lastSmoothedTime ?? now;
+        const dtSec = Math.max(0, (now - prevTime) / 1000);
+
+        // time constant ~20s, capped so gaps don't explode
+        const tau = 20;
+        const cappedDt = Math.min(dtSec, 60);
+        let alpha = 1 - Math.exp(-cappedDt / tau);
+
+        // fallback if dt is too tiny / zero
+        if (!Number.isFinite(alpha) || alpha <= 0) alpha = 0.25;
+
+        dimensions.forEach((d) => {
+          const id = d.id;
+          const current = state[id];
+          const prev = smoothedState[id] ?? current;
+          smoothedState[id] = prev + alpha * (current - prev);
+        });
+
+        lastSmoothedTime = now;
       }
 
-      // Use smoothed state (last ~10 minutes) for parameters + narrative
-      const smoothedState = getSmoothedState(state);
-
-      const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } =
-        computeParameters(smoothedState);
+      // use smoothedState for all derived parameters
+      const {
+        D,
+        lambda,
+        mu,
+        coherencePercent,
+        tensionScale,
+        chaosLoad
+      } = computeParameters(smoothedState);
 
       const Df = D.toFixed(3);
       const lf = lambda.toFixed(3);
@@ -875,7 +997,19 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
           });
       }
 
-      updateAIAnalysis(smoothedState, { D, lambda, mu, coherencePercent, tensionScale, chaosLoad });
+      if (persist) {
+        saveToStorage(state, timestampMs);
+      }
+
+      updateAIAnalysis(smoothedState, {
+        D,
+        lambda,
+        mu,
+        coherencePercent,
+        tensionScale,
+        chaosLoad
+      });
+      renderHistory();
     }
 
     // -------------------------------------------------------------------------
@@ -954,6 +1088,109 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       if (n < 0) return 0;
       if (n > 1) return 1;
       return n;
+    }
+
+    // -------------------------------------------------------------------------
+    //  HISTORY GRAPH (with smoothed curves)
+    // -------------------------------------------------------------------------
+
+    function resizeCanvas() {
+      if (!historyCanvas) return;
+      const rect = historyCanvas.getBoundingClientRect();
+      historyCanvas.width = rect.width * window.devicePixelRatio;
+      historyCanvas.height = rect.height * window.devicePixelRatio;
+      historyCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    }
+
+    function renderHistory() {
+      if (!historyCanvas || !historyCtx) return;
+      const width = historyCanvas.clientWidth;
+      const height = historyCanvas.clientHeight;
+      if (width === 0 || height === 0) return;
+
+      historyCtx.clearRect(0, 0, width, height);
+
+      if (!stateHistory.length) return;
+
+      const now = Date.now();
+      const windowMs = WINDOW_MS[activeWindowKey] || WINDOW_MS["10m"];
+      const startTime = now - windowMs;
+
+      const points = stateHistory.filter(p => p.t >= startTime);
+      if (points.length < 2) return;
+
+      const tMin = points[0].t;
+      const tMax = points[points.length - 1].t;
+      const xSpan = (tMax - tMin) || 1;
+
+      const leftPad = 24;
+      const rightPad = 6;
+      const topPad = 6;
+      const bottomPad = 16;
+
+      const plotW = width - leftPad - rightPad;
+      const plotH = height - topPad - bottomPad;
+
+      // subtle grid
+      historyCtx.strokeStyle = "rgba(255,255,255,0.12)";
+      historyCtx.lineWidth = 1;
+      historyCtx.beginPath();
+      for (let v = 0; v <= 5; v++) {
+        const y = topPad + plotH * (1 - v / 5);
+        historyCtx.moveTo(leftPad, y);
+        historyCtx.lineTo(leftPad + plotW, y);
+      }
+      historyCtx.stroke();
+
+      const colors = [
+        "#4dd0e1",
+        "#ffb74d",
+        "#ce93d8",
+        "#81c784",
+        "#f06292",
+        "#64b5f6",
+        "#ba68c8",
+        "#ff8a65",
+        "#4db6ac",
+        "#fff176",
+        "#e57373",
+        "#90a4ae"
+      ];
+
+      let colorIndex = 0;
+
+      dimensions.forEach((dim) => {
+        if (!activeDimensions.has(dim.id)) return;
+
+        const col = colors[colorIndex % colors.length];
+        colorIndex++;
+
+        // simple EMA smoothing along time for this dimension
+        let lastSmooth = null;
+        const smoothAlpha = 0.4; // 0..1, higher = more responsive
+
+        historyCtx.beginPath();
+        points.forEach((p, idx) => {
+          const raw = p.state[dim.id] ?? 0;
+          if (lastSmooth === null) {
+            lastSmooth = raw;
+          } else {
+            lastSmooth = lastSmooth + smoothAlpha * (raw - lastSmooth);
+          }
+
+          const x = leftPad + ((p.t - tMin) / xSpan) * plotW;
+          const y = topPad + plotH * (1 - lastSmooth / 5);
+
+          if (idx === 0) {
+            historyCtx.moveTo(x, y);
+          } else {
+            historyCtx.lineTo(x, y);
+          }
+        });
+        historyCtx.strokeStyle = col;
+        historyCtx.lineWidth = 1.5;
+        historyCtx.stroke();
+      });
     }
   </script>
 </body>
