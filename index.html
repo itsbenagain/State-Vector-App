@@ -28,6 +28,31 @@
       gap: 12px;
       width: 100%;
       max-width: 1280px;
+      transform: scale(0.9);
+      transform-origin: top center;
+    }
+
+    @media (max-width: 1200px) {
+      .app {
+        transform: scale(0.85);
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .app {
+        grid-template-columns: 1fr;
+        transform: scale(0.95);
+      }
+    }
+
+    @media (max-width: 800px) {
+      body {
+        padding: 6px;
+      }
+      .app {
+        max-width: 100%;
+        transform: scale(0.9);
+      }
     }
 
     /* LEFT BOARD */
@@ -37,6 +62,12 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
       grid-auto-rows: minmax(0, 1fr);
       gap: 10px;
+    }
+
+    @media (max-width: 1024px) {
+      .board {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
     }
 
     .card {
@@ -74,7 +105,7 @@
 
     .ticks {
       display: flex;
-      flex-direction: column;        /* <-- FIXED: no reverse */
+      flex-direction: column;          /* 5 at top, 0 at bottom */
       justify-content: space-between;
       height: 120px;
       font-size: 0.6rem;
@@ -141,14 +172,14 @@
         #05060a 100%
       );
       border-radius: 16px;
-      padding: 18px 18px 20px;
+      padding: 18px 20px 20px;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04),
-        0 16px 36px rgba(0, 0, 0, 0.9);
+        0 18px 36px rgba(0, 0, 0, 0.9);
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      font-size: 0.95rem;
+      gap: 16px;
+      font-size: 0.98rem;
     }
 
     .panel-header {
@@ -159,7 +190,7 @@
     }
 
     .panel-header h1 {
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
@@ -170,7 +201,7 @@
     }
 
     .panel-section-title {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: #8fb5ff;
@@ -178,22 +209,24 @@
     }
 
     .state-label-line {
-      font-size: 0.78rem;
+      font-size: 0.84rem;
       color: #c3c7da;
       margin-bottom: 8px;
     }
 
     .state-label-line span {
       color: #8b90a8;
-      font-size: 0.7rem;
+      font-size: 0.78rem;
       margin-left: 6px;
     }
+
+    /* STATE GRID / PILLS */
 
     .state-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 6px;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
 
     .state-pill {
@@ -214,7 +247,7 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: #aab2d3;
-      font-size: 0.7rem;
+      font-size: 0.72rem;
     }
 
     .state-pill .value {
@@ -223,9 +256,11 @@
       font-size: 0.8rem;
     }
 
+    /* EQUATION BLOCK */
+
     pre {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.9rem;
+      font-size: 0.96rem;
       background: rgba(0, 0, 0, 0.35);
       padding: 10px 12px;
       border-radius: 10px;
@@ -234,12 +269,16 @@
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
+    /* PARAMETER LINE */
+
     .state-line {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
       font-size: 0.9rem;
       white-space: pre-wrap;
       word-break: break-word;
     }
+
+    /* METRICS PILLS */
 
     .metrics-row {
       display: flex;
@@ -256,14 +295,14 @@
       border: 1px solid rgba(170, 202, 255, 0.32);
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
 
     .pill span.label {
       color: #9da5c4;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      font-size: 0.75rem;
+      font-size: 0.76rem;
     }
 
     .pill span.value {
@@ -272,71 +311,21 @@
       font-size: 0.9rem;
     }
 
+    /* AI ANALYSIS TEXT */
+
     .ai-analysis {
       margin-top: 4px;
       font-size: 0.9rem;
       color: #d0d4ea;
     }
 
+    /* FOOTER */
+
     .footer-note {
       margin-top: auto;
-      font-size: 0.72rem;
+      font-size: 0.78rem;
       color: #727894;
       text-align: right;
-    }
-
-    /* RESPONSIVE */
-
-    @media (max-width: 1100px) {
-      .app {
-        grid-template-columns: 1fr;
-      }
-
-      .board {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 800px) {
-      body {
-        padding: 8px;
-      }
-
-      .board {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .panel-header h1 {
-        font-size: 1.3rem;
-      }
-
-      .panel {
-        font-size: 0.9rem;
-      }
-    }
-
-    @media (max-width: 520px) {
-      .board {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px;
-      }
-
-      .card h3 {
-        font-size: 0.7rem;
-      }
-
-      .panel {
-        padding: 12px 10px 14px;
-      }
-
-      .panel-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .state-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
     }
   </style>
 </head>
@@ -385,7 +374,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
             <span class="value" id="tensionVal">—</span>
           </div>
           <div class="pill">
-            <span class="label">Diffusion D</span>
+            <span class="label">D</span>
             <span class="value" id="dVal">—</span>
           </div>
           <div class="pill">
@@ -400,23 +389,22 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       </div>
 
       <div>
-        <div class="panel-section-title">Field Analysis (AI-style)</div>
+        <div class="panel-section-title">Field Analysis</div>
         <div id="ai-analysis" class="state-line ai-analysis">
-          Adjust the board to generate a live reading of coherence, chaos load,
-          and field parameters.
+          Adjust the board to get a live reading of how coherent, intense, and
+          reconfiguring your current field is.
         </div>
       </div>
 
       <div class="footer-note">
-        Move the sliders. The 12-dimensional state vector drives (D, λ, μ), which
-        tune the current cut of your unified consciousness field.
+        Move the sliders. The 12-dimensional state vector drives (D, λ, μ), which tune the current cut of your unified consciousness field.
       </div>
     </div>
   </div>
 
   <script>
     // -------------------------------------------------------------------------
-    // DIMENSIONS
+    //  DIMENSIONS
     // -------------------------------------------------------------------------
     const dimensions = [
       { id: "energy", label: "Energy" },
@@ -437,12 +425,11 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     const STORAGE_LAST_STATE_KEY = "fieldBoardLastState_v1";
     const STORAGE_LAST_TIME_KEY = "fieldBoardLastTime_v1";
 
-    let stateHistory = []; // [{ t, state }]
+    let stateHistory = [];
     let lastTimestampMs = null;
 
-    // DOM refs
-    let boardEl, stateGridEl, paramsEl, coherenceEl, tensionEl;
-    let dValEl, lambdaValEl, muValEl, timestampEl, aiAnalysisEl;
+    let boardEl, stateGridEl, paramsEl, coherenceEl, tensionEl,
+      dValEl, lambdaValEl, muValEl, timestampEl, aiAnalysisEl;
 
     document.addEventListener("DOMContentLoaded", () => {
       boardEl = document.getElementById("board");
@@ -463,8 +450,9 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     });
 
     // -------------------------------------------------------------------------
-    // BUILD UI
+    //  BUILD UI
     // -------------------------------------------------------------------------
+
     function buildSliderCards() {
       if (!boardEl) return;
 
@@ -481,6 +469,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
 
         const ticks = document.createElement("div");
         ticks.className = "ticks";
+        // 5 at top, 0 at bottom
         for (let i = 5; i >= 0; i--) {
           const s = document.createElement("span");
           s.textContent = i.toString();
@@ -552,10 +541,10 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     }
 
     // -------------------------------------------------------------------------
-    // STORAGE
+    //  STORAGE
     // -------------------------------------------------------------------------
+
     function loadFromStorageOrDefaults() {
-      // history
       try {
         const raw = localStorage.getItem(STORAGE_HISTORY_KEY);
         if (raw) {
@@ -596,29 +585,30 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
 
     function saveToStorage(state, timestampMs) {
       stateHistory.push({ t: timestampMs, state });
-      if (stateHistory.length > 500) stateHistory.shift();
+      if (stateHistory.length > 500) {
+        stateHistory.shift();
+      }
 
       try {
         localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
         localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(state));
         localStorage.setItem(STORAGE_LAST_TIME_KEY, String(timestampMs));
       } catch {
-        // ignore
+        // ignore storage errors
       }
     }
 
     // -------------------------------------------------------------------------
-    // LISTENERS
+    //  LISTENERS
     // -------------------------------------------------------------------------
+
     function attachListeners() {
-      // slider input
       dimensions.forEach((dim) => {
         const slider = document.getElementById(dim.id);
         if (!slider) return;
         slider.addEventListener("input", () => handleSliderChange());
       });
 
-      // +/- buttons
       if (!boardEl) return;
       const btns = boardEl.querySelectorAll(".slider-btn");
       btns.forEach((btn) => {
@@ -645,8 +635,9 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     }
 
     // -------------------------------------------------------------------------
-    // STATE / PARAMETERS
+    //  STATE / PARAMETERS
     // -------------------------------------------------------------------------
+
     function getStateVector() {
       const state = {};
       dimensions.forEach((d) => {
@@ -687,25 +678,27 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         longTermTrajectory
       } = state;
 
-      const ne = expo(norm(energy), 1.1);
-      const nf = expo(norm(focus), 1.2);
-      const nm = expo(norm(money), 1.1);
-      const nr = expo(norm(relationships), 1.15);
-      const nco = expo(norm(creativeOutput), 1.25);
-      const nsg = expo(norm(skillGrowth), 1.2);
-      const nh = expo(norm(health), 1.1);
-      const nen = expo(norm(environment), 1.2);
-      const nsp = expo(norm(socialPresence), 1.1);
-      const nop = expo(norm(opportunities), 1.15);
-      const ncl = expo(norm(chaosLoad), 1.1);
-      const nlt = expo(norm(longTermTrajectory), 1.2);
+      const ne = expo(norm(energy), 1.05);
+      const nf = expo(norm(focus), 1.05);
+      const nm = expo(norm(money), 1.05);
+      const nr = expo(norm(relationships), 1.05);
+      const nco = expo(norm(creativeOutput), 1.08);
+      const nsg = expo(norm(skillGrowth), 1.05);
+      const nh = expo(norm(health), 1.05);
+      const nen = expo(norm(environment), 1.05);
+      const nsp = expo(norm(socialPresence), 1.02);
+      const nop = expo(norm(opportunities), 1.05);
+      const ncl = expo(norm(chaosLoad), 1.0);
+      const nlt = expo(norm(longTermTrajectory), 1.05);
 
+      // D (exploration / looseness)
       let D =
-        0.45 * (1 - nf) +
-        0.35 * (1 - nsg) +
-        0.35 * (1 - nen) +
-        0.7 * ncl;
+        0.3 * (1 - nf) +
+        0.25 * (1 - nsg) +
+        0.25 * (1 - nen) +
+        0.4 * ncl;
 
+      // λ (pull of core trajectory)
       let lambda =
         0.25 * ne +
         0.18 * nm +
@@ -715,54 +708,47 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         0.09 * nh +
         0.08 * nlt;
 
+      // μ (reframing / inversion)
       let mu =
-        0.45 * nco +
-        0.30 * ncl +
+        0.4 * nco +
+        0.25 * ncl +
         0.25 * nlt;
 
-      D = Math.max(0, Math.min(1.8, D));
+      D = Math.max(0, Math.min(1.6, D));
       lambda = Math.max(0, Math.min(1.5, lambda));
       mu = Math.max(0, Math.min(1.5, mu));
 
       const constructiveAvg =
-        (ne +
-          nf +
-          nm +
-          nr +
-          nco +
-          nsg +
-          nh +
-          nen +
-          nsp +
-          nop +
-          nlt) /
-        11;
+        (ne + nf + nm + nr + nco + nsg + nh + nen + nsp + nop + nlt) / 11;
 
       let coherence =
-        0.6 * constructiveAvg +
-        0.2 * nlt +
+        0.55 * constructiveAvg +
+        0.25 * nlt +
         0.15 * (lambda / 1.5) -
-        0.35 * ncl -
-        0.25 * (D / 1.8);
+        0.15 * ncl -
+        0.1 * (D / 1.6) +
+        0.05; // small baseline offset
 
       coherence = Math.max(0, Math.min(1, coherence));
       const coherencePercent = Math.round(coherence * 100);
 
-      const Dterm = 1 - D / 1.8;
+      const Dterm = 1 - D / 1.6;
+
       let tension =
-        0.55 * (lambda / 1.5) +
+        0.5 * (lambda / 1.5) +
         0.35 * (mu / 1.5) +
-        0.10 * Dterm;
+        0.15 * Dterm;
 
-      tension = Math.max(0, Math.min(1.4, tension));
-      const tensionScale = Math.round((tension / 1.4) * 100);
+      tension = Math.max(0, Math.min(1.3, tension));
+      const tensionScale = Math.round((tension / 1.3) * 100);
 
-      return { D, lambda, mu, coherencePercent, tensionScale };
+      return { D, lambda, mu, coherencePercent, tensionScale, chaosLoad };
     }
 
     // -------------------------------------------------------------------------
-    // UI UPDATE
+    //  UI UPDATE
     // -------------------------------------------------------------------------
+
     function updateUI(state, timestampMs, { persist }) {
       dimensions.forEach((d) => {
         const v = state[d.id];
@@ -772,7 +758,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         if (pillEl) pillEl.textContent = String(v);
       });
 
-      const { D, lambda, mu, coherencePercent, tensionScale } =
+      const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } =
         computeParameters(state);
 
       const Df = D.toFixed(3);
@@ -807,86 +793,85 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         saveToStorage(state, timestampMs);
       }
 
-      updateAIAnalysis(state, { D, lambda, mu, coherencePercent, tensionScale });
+      updateAIAnalysis(state, { D, lambda, mu, coherencePercent, tensionScale, chaosLoad });
     }
 
     // -------------------------------------------------------------------------
-    // "AI" ANALYSIS (LOCAL)
+    //  "AI" ANALYSIS (LOCAL, SELF-HELP STYLE)
     // -------------------------------------------------------------------------
+
+    function updateAIAnalysis(state, params) {
+      if (!aiAnalysisEl) return;
+
+      const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } = params;
+      const chaosLevel = normalizeChaos(chaosLoad);
+
+      let coherenceText;
+      if (coherencePercent >= 80) {
+        coherenceText = "very coherent — your priorities are lining up and the field feels locked in.";
+      } else if (coherencePercent >= 65) {
+        coherenceText = "solid and focused — there's clear direction with enough flexibility to breathe.";
+      } else if (coherencePercent >= 45) {
+        coherenceText = "in an integration phase — multiple threads are active and learning how to sit together.";
+      } else {
+        coherenceText = "reconfiguring — you're in a remix zone where the system is trying new combinations.";
+      }
+
+      let chaosText;
+      if (chaosLevel <= 0.15) {
+        chaosText = "Chaos load is very low; things are calm, maybe even a bit under-stimulated.";
+      } else if (chaosLevel <= 0.4) {
+        chaosText = "Chaos load is in a healthy stimulation band — there’s movement without overload.";
+      } else if (chaosLevel <= 0.7) {
+        chaosText = "Chaos is elevated — a lot is happening at once, so simplifying a couple sliders would help.";
+      } else {
+        chaosText = "Chaos is running hot — the system is learning through intensity; reducing obligations would instantly free bandwidth.";
+      }
+
+      let Dtext;
+      if (D < 0.4) {
+        Dtext = "Stability is high: your moves are deliberate and changes propagate slowly.";
+      } else if (D < 0.9) {
+        Dtext = "You're in a mixed stability/exploration mode — trying things without losing the plot.";
+      } else {
+        Dtext = "Exploration is dominant — this is a ‘try lots of moves and see what sticks’ moment.";
+      }
+
+      let lambdaText;
+      if (lambda > 1.1) {
+        lambdaText = "The pull of your core trajectory (λ) is strong; you have a clear sense of what matters long-term.";
+      } else if (lambda > 0.6) {
+        lambdaText = "λ is moderate — you know the general direction, even if some details are still flexible.";
+      } else {
+        lambdaText = "λ is gentle — this is a good window for re-evaluating what ‘the main arc’ actually is.";
+      }
+
+      let muText;
+      if (mu > 1.0) {
+        muText =
+          "μ is high: big reframe energy — expect reinterpretations, perspective flips, and unexpected connections.";
+      } else if (mu > 0.5) {
+        muText =
+          "μ is moderate: you're open to new meanings without losing the basic story.";
+      } else {
+        muText =
+          "μ is low: you're reading life pretty literally right now, with minimal reinterpretation.";
+      }
+
+      aiAnalysisEl.textContent =
+        `Current read: ${coherenceText} ` +
+        `${chaosText} ` +
+        `${Dtext} ` +
+        `${lambdaText} ` +
+        `${muText}`;
+    }
+
     function normalizeChaos(chaosVal) {
       const v = Number(chaosVal) || 0;
       const n = v / 5;
       if (n < 0) return 0;
       if (n > 1) return 1;
       return n;
-    }
-
-    function updateAIAnalysis(state, params) {
-      if (!aiAnalysisEl) return;
-
-      const { D, lambda, mu, coherencePercent, tensionScale } = params;
-      const chaosLevel = normalizeChaos(state.chaosLoad);
-
-      let coherenceText;
-      if (coherencePercent >= 80) {
-        coherenceText = "highly coherent and phase-aligned.";
-      } else if (coherencePercent >= 60) {
-        coherenceText = "moderately coherent with room to sharpen alignment.";
-      } else if (coherencePercent >= 35) {
-        coherenceText = "fragmented, with multiple sub-trajectories competing.";
-      } else if (coherencePercent >= 20) {
-        coherenceText = "low-coherence, with priorities not yet agreeing on a single attractor.";
-      } else {
-        coherenceText = "near decoherence — priorities are pulling in many directions at once.";
-      }
-
-      let chaosText;
-      if (chaosLevel <= 0.2) {
-        chaosText = "Chaos load is very low; system is calm and under-driven.";
-      } else if (chaosLevel <= 0.45) {
-        chaosText = "Chaos load is in a healthy stimulation band.";
-      } else if (chaosLevel <= 0.7) {
-        chaosText = "Chaos is elevated; bandwidth is being eaten by overhead.";
-      } else {
-        chaosText = "Chaos dominates — diffusion is likely to override intention unless simplified.";
-      }
-
-      let Dtext;
-      if (D < 0.4) {
-        Dtext = "Diffusion D is low: trajectories are tight and stable.";
-      } else if (D < 0.9) {
-        Dtext = "Diffusion D is moderate: exploration and drift are both active.";
-      } else {
-        Dtext = "Diffusion D is high: the field is in an exploratory / noisy regime.";
-      }
-
-      let lambdaText;
-      if (lambda > 1.1) {
-        lambdaText = "λ is strong, so attractors are well-defined and can pull you back onto track.";
-      } else if (lambda > 0.5) {
-        lambdaText = "λ is moderate; attractors exist but can be overridden by chaos or drift.";
-      } else {
-        lambdaText = "λ is weak; no clear attractor, so the system will feel more open-ended and ambiguous.";
-      }
-
-      let muText;
-      if (mu > 1.0) {
-        muText =
-          "μ is high: inversion / re-interpretation is strong — expect reframing, aliasing of identity, and non-linear jumps.";
-      } else if (mu > 0.5) {
-        muText =
-          "μ is moderate: some inversion and aliasing, but not enough to fully flip the narrative.";
-      } else {
-        muText =
-          "μ is low: the field is reading mostly in a direct, literal mode with minimal aliasing.";
-      }
-
-      aiAnalysisEl.textContent =
-        `Current field read: the configuration is ${coherenceText} ` +
-        `${chaosText} ` +
-        `${Dtext} ` +
-        `${lambdaText} ` +
-        `${muText}`;
     }
   </script>
 </body>
