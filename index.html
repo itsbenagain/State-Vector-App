@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Unified Consciousness Field Board</title>
+  <title>StateBoard · Unified Consciousness Field Board</title>
   <style>
     * {
       box-sizing: border-box;
@@ -18,51 +18,31 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: stretch;
-      padding: 12px;
+      align-items: flex-start; /* anchor to top so you see more */
+      padding: 10px;
     }
-
-    /* APP LAYOUT */
 
     .app {
       display: grid;
-      grid-template-columns: 3fr 2.5fr;
-      gap: 12px;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2.5fr);
+      gap: 10px;
       width: 100%;
       max-width: 1280px;
-    }
-
-    /* Slight shrink on bigger screens */
-    @media (min-width: 1100px) {
-      .app {
-        transform: scale(0.8);
-        transform-origin: top center;
-      }
     }
 
     @media (max-width: 1024px) {
       .app {
         grid-template-columns: 1fr;
-        transform: none;
       }
     }
 
-    @media (max-width: 800px) {
-      body {
-        padding: 6px;
-      }
-      .app {
-        max-width: 100%;
-      }
-    }
-
-    /* LEFT BOARD */
+    /* LEFT BOARD ---------------------------------------------------------- */
 
     .board {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       grid-auto-rows: minmax(0, 1fr);
-      gap: 10px;
+      gap: 8px;
     }
 
     @media (max-width: 1024px) {
@@ -71,7 +51,7 @@
       }
     }
 
-    @media (max-width: 650px) {
+    @media (max-width: 720px) {
       .board {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -85,21 +65,21 @@
         #05060a 100%
       );
       border-radius: 14px;
-      padding: 10px 8px 12px;
+      padding: 8px 6px 10px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04),
-        0 16px 30px rgba(0, 0, 0, 0.85);
+        0 14px 26px rgba(0, 0, 0, 0.85);
     }
 
     .card h3 {
-      font-size: 0.78rem;
+      font-size: 0.7rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       text-align: center;
     }
 
@@ -112,10 +92,10 @@
 
     .ticks {
       display: flex;
-      flex-direction: column;          /* 5 at top, 0 at bottom */
+      flex-direction: column;
       justify-content: space-between;
-      height: 120px;
-      font-size: 0.6rem;
+      height: 100px;
+      font-size: 0.56rem;
       color: #a0a4b4;
       line-height: 1.1;
       margin-right: 2px;
@@ -129,7 +109,7 @@
       writing-mode: bt-lr;
       -webkit-appearance: slider-vertical;
       width: 8px;
-      height: 120px;
+      height: 100px;
       accent-color: #45e0ff;
     }
 
@@ -141,13 +121,13 @@
     }
 
     .slider-btn {
-      width: 22px;
-      height: 22px;
+      width: 26px;
+      height: 26px;
       border-radius: 7px;
       border: 1px solid rgba(132, 189, 255, 0.4);
       background: radial-gradient(circle at top, #242c3b 0%, #151925 70%);
       color: #f4f7ff;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       line-height: 1;
       cursor: pointer;
       display: flex;
@@ -165,27 +145,19 @@
 
     .value-label {
       margin-top: 4px;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: #c0c4d4;
     }
 
-    /* Phone: make +/- bigger and easier to hit */
-
     @media (max-width: 650px) {
       .slider-btn {
-        width: 34px;
-        height: 34px;
-        font-size: 1.1rem;
-      }
-      .card h3 {
-        font-size: 0.8rem;
-      }
-      .value-label {
-        font-size: 0.76rem;
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
       }
     }
 
-    /* RIGHT PANEL */
+    /* RIGHT PANEL --------------------------------------------------------- */
 
     .panel {
       background: radial-gradient(
@@ -195,36 +167,50 @@
         #05060a 100%
       );
       border-radius: 16px;
-      padding: 18px 20px 20px;
+      padding: 16px 18px 18px;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04),
-        0 18px 36px rgba(0, 0, 0, 0.9);
+        0 18px 32px rgba(0, 0, 0, 0.9);
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      font-size: 0.98rem;
+      gap: 14px;
+      font-size: 0.95rem;
     }
 
     .panel-header {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
+      align-items: flex-start;
       gap: 8px;
+    }
+
+    .panel-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
 
     .panel-header h1 {
       font-size: 1.6rem;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
-    .panel-header span {
+    .panel-subtitle {
       font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
       color: #9ea3b5;
     }
 
+    .panel-header span {
+      font-size: 0.78rem;
+      color: #9ea3b5;
+      white-space: nowrap;
+    }
+
     .panel-section-title {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: #8fb5ff;
@@ -232,18 +218,18 @@
     }
 
     .state-label-line {
-      font-size: 0.84rem;
+      font-size: 0.8rem;
       color: #c3c7da;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .state-label-line span {
       color: #8b90a8;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       margin-left: 6px;
     }
 
-    /* STATE GRID / PILLS */
+    /* STATE GRID / PILLS -------------------------------------------------- */
 
     .state-grid {
       display: grid;
@@ -254,9 +240,9 @@
 
     .state-pill {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       border-radius: 12px;
-      padding: 5px 8px;
+      padding: 4px 7px;
       background: linear-gradient(130deg, #1d2536, #141722);
       border: 1px solid rgba(167, 196, 255, 0.32);
       display: flex;
@@ -270,20 +256,20 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: #aab2d3;
-      font-size: 0.72rem;
+      font-size: 0.68rem;
     }
 
     .state-pill .value {
       color: #e7f4ff;
       font-weight: 600;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
     }
 
-    /* EQUATION BLOCK */
+    /* EQUATION BLOCK ------------------------------------------------------ */
 
     pre {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.96rem;
+      font-size: 0.9rem;
       background: rgba(0, 0, 0, 0.35);
       padding: 10px 12px;
       border-radius: 10px;
@@ -292,28 +278,28 @@
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    /* PARAMETER LINE */
+    /* PARAMETER LINE ------------------------------------------------------ */
 
     .state-line {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.9rem;
+      font-size: 0.86rem;
       white-space: pre-wrap;
       word-break: break-word;
     }
 
-    /* METRICS PILLS */
+    /* METRICS PILLS ------------------------------------------------------- */
 
     .metrics-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
       margin-top: 6px;
     }
 
     .pill {
-      font-size: 0.9rem;
+      font-size: 0.86rem;
       border-radius: 999px;
-      padding: 6px 12px;
+      padding: 5px 11px;
       background: linear-gradient(120deg, #1f2a3f, #151a26);
       border: 1px solid rgba(170, 202, 255, 0.32);
       display: inline-flex;
@@ -325,106 +311,89 @@
       color: #9da5c4;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      font-size: 0.76rem;
+      font-size: 0.72rem;
     }
 
     .pill span.value {
       color: #e6f5ff;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.86rem;
     }
 
-    /* HISTORY SECTION */
+    /* HISTORY GRAPH ------------------------------------------------------- */
 
-    .history-section {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 4px;
-    }
-
-    .history-controls {
+    .history-header-row {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-      font-size: 0.76rem;
+      margin-bottom: 4px;
     }
 
     .history-checkboxes {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px 10px;
+      gap: 6px 10px;
+      font-size: 0.8rem;
     }
 
     .history-checkboxes label {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      color: #c7cbea;
+      gap: 3px;
     }
 
     .history-checkboxes input {
       accent-color: #45e0ff;
     }
 
-    .history-window {
-      display: flex;
+    .window-label {
+      font-size: 0.8rem;
+      color: #c0c4d4;
+      display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
       white-space: nowrap;
     }
 
-    .history-window label {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    #windowSelect {
-      background: #111522;
+    .window-label select {
+      background: #111421;
       border-radius: 999px;
-      border: 1px solid rgba(170, 202, 255, 0.45);
-      padding: 3px 10px;
-      color: #e7f4ff;
-      font-size: 0.78rem;
+      border: 1px solid rgba(170, 202, 255, 0.32);
+      color: #e6f5ff;
+      padding: 4px 10px;
+      font-size: 0.8rem;
       outline: none;
     }
 
     .history-chart-wrapper {
-      background: radial-gradient(circle at top, #141823 0%, #05060a 90%);
+      margin-top: 4px;
+      background: radial-gradient(circle at top, #141926 0%, #05060a 80%);
       border-radius: 12px;
-      padding: 8px 8px 10px;
-      border: 1px solid rgba(170, 202, 255, 0.25);
+      border: 1px solid rgba(110, 140, 210, 0.5);
+      padding: 6px;
     }
 
-    #historyChart {
+    #historyCanvas {
       width: 100%;
-      height: 200px;
+      height: 190px;
       display: block;
     }
 
-    @media (max-width: 900px) {
-      .history-controls {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      #historyChart {
-        height: 180px;
+    @media (max-width: 650px) {
+      #historyCanvas {
+        height: 160px;
       }
     }
 
-    /* AI ANALYSIS TEXT */
+    /* AI ANALYSIS TEXT & FOOTER ------------------------------------------- */
 
     .ai-analysis {
       margin-top: 4px;
       font-size: 0.9rem;
       color: #d0d4ea;
     }
-
-    /* FOOTER */
 
     .footer-note {
       margin-top: auto;
@@ -442,7 +411,10 @@
     <!-- RIGHT: Equation / Parameters Panel -->
     <div class="panel">
       <div class="panel-header">
-        <h1>Unified Consciousness Field Board</h1>
+        <div class="panel-title-block">
+          <h1>StateBoard</h1>
+          <div class="panel-subtitle">Unified Consciousness Field Board</div>
+        </div>
         <span id="timestamp">Last change: —</span>
       </div>
 
@@ -493,41 +465,24 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         </div>
       </div>
 
-      <!-- FIELD HISTORY SECTION -->
-      <div class="history-section">
+      <div>
         <div class="panel-section-title">Field History</div>
-        <div class="history-controls">
-          <div class="history-checkboxes">
-            <label><input class="history-checkbox" type="checkbox" data-dim="energy"> Energy</label>
-            <label><input class="history-checkbox" type="checkbox" data-dim="focus"> Focus</label>
-            <label><input class="history-checkbox" type="checkbox" data-dim="money"> Money</label>
-            <label><input class="history-checkbox" type="checkbox" data-dim="relationships"> Relationships</label>
-            <label><input class="history-checkbox" type="checkbox" data-dim="creativeOutput"> Creative Output</label>
-            <label><input class="history-checkbox" type="checkbox" data-dim="skillGrowth"> Skill Growth</label>
-            <label><input class="history-checkbox" type="checkbox" data-dim="health" checked> Health</label>
-            <label><input class="history-checkbox" type="checkbox" data-dim="environment" checked> Environment</label>
-            <label><input class="history-checkbox" type="checkbox" data-dim="socialPresence"> Social Presence</label>
-            <label><input class="history-checkbox" type="checkbox" data-dim="opportunities"> Opportunities</label>
-            <label><input class="history-checkbox" type="checkbox" data-dim="chaosLoad" checked> Chaos Load</label>
-            <label><input class="history-checkbox" type="checkbox" data-dim="longTermTrajectory"> Long-term Trajectory</label>
-          </div>
-          <div class="history-window">
-            <label>
-              Window:
-              <select id="windowSelect">
-                <option value="10m" selected>10 min</option>
-                <option value="1h">1 hour</option>
-                <option value="6h">6 hours</option>
-                <option value="24h">Day</option>
-                <option value="7d">Week</option>
-                <option value="30d">Month</option>
-                <option value="365d">Year</option>
-              </select>
-            </label>
-          </div>
+        <div class="history-header-row">
+          <div class="history-checkboxes" id="historyCheckboxes"></div>
+          <label class="window-label">
+            Window:
+            <select id="historyWindow">
+              <option value="10min" selected>10 min</option>
+              <option value="1h">1 hour</option>
+              <option value="1d">Day</option>
+              <option value="1w">Week</option>
+              <option value="1m">Month</option>
+              <option value="1y">Year</option>
+            </select>
+          </label>
         </div>
         <div class="history-chart-wrapper">
-          <canvas id="historyChart"></canvas>
+          <canvas id="historyCanvas"></canvas>
         </div>
       </div>
 
@@ -564,9 +519,9 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       { id: "longTermTrajectory", label: "Long-term Trajectory" }
     ];
 
-    const STORAGE_HISTORY_KEY = "fieldBoardHistory_v1";
-    const STORAGE_LAST_STATE_KEY = "fieldBoardLastState_v1";
-    const STORAGE_LAST_TIME_KEY = "fieldBoardLastTime_v1";
+    const STORAGE_HISTORY_KEY = "fieldBoardHistory_v2";
+    const STORAGE_LAST_STATE_KEY = "fieldBoardLastState_v2";
+    const STORAGE_LAST_TIME_KEY = "fieldBoardLastTime_v2";
 
     let stateHistory = [];
     let lastTimestampMs = null;
@@ -574,8 +529,23 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     let boardEl, stateGridEl, paramsEl, coherenceEl, tensionEl,
       dValEl, lambdaValEl, muValEl, timestampEl, aiAnalysisEl;
 
-    // history-graph DOM
-    let historyCanvas, historyCtx, windowSelect, historyCheckboxEls;
+    let historyCheckboxesEl, historyWindowEl, historyCanvas, historyCtx;
+
+    // colors for graph lines
+    const DIM_COLORS = [
+      "#4fd1ff", "#ff80bf", "#ffd36a", "#9b8cff",
+      "#4cff9a", "#ff826a", "#c4ff4f", "#ffb3ff",
+      "#6affff", "#ffa64f", "#ff4f78", "#a0ffcc"
+    ];
+
+    const WINDOW_MS = {
+      "10min": 10 * 60 * 1000,
+      "1h": 60 * 60 * 1000,
+      "1d": 24 * 60 * 60 * 1000,
+      "1w": 7 * 24 * 60 * 60 * 1000,
+      "1m": 30 * 24 * 60 * 60 * 1000,
+      "1y": 365 * 24 * 60 * 60 * 1000
+    };
 
     document.addEventListener("DOMContentLoaded", () => {
       boardEl = document.getElementById("board");
@@ -589,23 +559,23 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       timestampEl = document.getElementById("timestamp");
       aiAnalysisEl = document.getElementById("ai-analysis");
 
-      historyCanvas = document.getElementById("historyChart");
+      historyCheckboxesEl = document.getElementById("historyCheckboxes");
+      historyWindowEl = document.getElementById("historyWindow");
+      historyCanvas = document.getElementById("historyCanvas");
       historyCtx = historyCanvas.getContext("2d");
-      windowSelect = document.getElementById("windowSelect");
-      historyCheckboxEls = document.querySelectorAll(".history-checkbox");
 
       buildSliderCards();
       buildStatePills();
+      buildHistoryControls();
+      resizeHistoryCanvas();
+
       loadFromStorageOrDefaults();
       attachListeners();
 
-      if (windowSelect) {
-        windowSelect.addEventListener("change", renderHistoryChart);
-      }
-      historyCheckboxEls.forEach(cb =>
-        cb.addEventListener("change", renderHistoryChart)
-      );
-      window.addEventListener("resize", renderHistoryChart);
+      window.addEventListener("resize", () => {
+        resizeHistoryCanvas();
+        updateHistoryChart();
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -628,7 +598,6 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
 
         const ticks = document.createElement("div");
         ticks.className = "ticks";
-        // 5 at top, 0 at bottom
         for (let i = 5; i >= 0; i--) {
           const s = document.createElement("span");
           s.textContent = i.toString();
@@ -699,6 +668,35 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       });
     }
 
+    function buildHistoryControls() {
+      // checkboxes
+      dimensions.forEach((dim, idx) => {
+        const label = document.createElement("label");
+        label.style.color = "#d0d4ea";
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.value = dim.id;
+
+        // default: turn on a few useful ones
+        if (["health", "environment", "chaosLoad", "longTermTrajectory"].includes(dim.id)) {
+          cb.checked = true;
+        }
+
+        cb.addEventListener("change", updateHistoryChart);
+
+        const span = document.createElement("span");
+        span.textContent = dim.label;
+
+        label.appendChild(cb);
+        label.appendChild(span);
+
+        historyCheckboxesEl.appendChild(label);
+      });
+
+      historyWindowEl.addEventListener("change", updateHistoryChart);
+    }
+
     // -------------------------------------------------------------------------
     //  STORAGE
     // -------------------------------------------------------------------------
@@ -740,13 +738,11 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         const now = Date.now();
         updateUI(state, now, { persist: true });
       }
-
-      renderHistoryChart();
     }
 
     function saveToStorage(state, timestampMs) {
       stateHistory.push({ t: timestampMs, state });
-      if (stateHistory.length > 500) {
+      if (stateHistory.length > 600) {
         stateHistory.shift();
       }
 
@@ -887,7 +883,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         0.25 * nlt +
         0.15 * (lambda / 1.5) -
         0.15 * ncl -
-        0.1 * (D / 1.6) +
+        0.10 * (D / 1.6) +
         0.05; // baseline offset
 
       coherence = Math.max(0, Math.min(1, coherence));
@@ -954,8 +950,16 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         saveToStorage(state, timestampMs);
       }
 
-      updateAIAnalysis(state, { D, lambda, mu, coherencePercent, tensionScale, chaosLoad });
-      renderHistoryChart();
+      updateAIAnalysis(state, {
+        D,
+        lambda,
+        mu,
+        coherencePercent,
+        tensionScale,
+        chaosLoad
+      });
+
+      updateHistoryChart();
     }
 
     // -------------------------------------------------------------------------
@@ -970,42 +974,55 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
 
       let coherenceText;
       if (coherencePercent >= 80) {
-        coherenceText = "very coherent — your priorities are lining up and the field feels locked in.";
+        coherenceText =
+          "very coherent — your priorities are lining up and the field feels locked in.";
       } else if (coherencePercent >= 65) {
-        coherenceText = "solid and focused — there's clear direction with enough flexibility to breathe.";
+        coherenceText =
+          "solid and focused — there's clear direction with enough flexibility to breathe.";
       } else if (coherencePercent >= 45) {
-        coherenceText = "in an integration phase — multiple threads are active and learning how to sit together.";
+        coherenceText =
+          "in an integration phase — multiple threads are active and learning how to sit together.";
       } else {
-        coherenceText = "reconfiguring — you're in a remix zone where the system is trying new combinations.";
+        coherenceText =
+          "reconfiguring — you're in a remix zone where the system is trying new combinations.";
       }
 
       let chaosText;
       if (chaosLevel <= 0.15) {
-        chaosText = "Chaos load is very low; things are calm, maybe even a bit under-stimulated.";
+        chaosText =
+          "Chaos load is very low; things are calm, maybe even a bit under-stimulated.";
       } else if (chaosLevel <= 0.4) {
-        chaosText = "Chaos load is in a healthy stimulation band — there’s movement without overload.";
+        chaosText =
+          "Chaos load is in a healthy stimulation band — there’s movement without overload.";
       } else if (chaosLevel <= 0.7) {
-        chaosText = "Chaos is elevated — a lot is happening at once, so simplifying a couple sliders would help.";
+        chaosText =
+          "Chaos is elevated — a lot is happening at once, so simplifying a couple sliders would help.";
       } else {
-        chaosText = "Chaos is running hot — the system is learning through intensity; reducing obligations would instantly free bandwidth.";
+        chaosText =
+          "Chaos is running hot — the system is learning through intensity; reducing obligations would instantly free bandwidth.";
       }
 
       let Dtext;
       if (D < 0.4) {
         Dtext = "Stability is high: your moves are deliberate and changes propagate slowly.";
       } else if (D < 0.9) {
-        Dtext = "You're in a mixed stability/exploration mode — trying things without losing the plot.";
+        Dtext =
+          "You're in a mixed stability/exploration mode — trying things without losing the plot.";
       } else {
-        Dtext = "Exploration is dominant — this is a ‘try lots of moves and see what sticks’ moment.";
+        Dtext =
+          "Exploration is dominant — this is a ‘try lots of moves and see what sticks’ moment.";
       }
 
       let lambdaText;
       if (lambda > 1.1) {
-        lambdaText = "The pull of your core trajectory (λ) is strong; you have a clear sense of what matters long-term.";
+        lambdaText =
+          "The pull of your core trajectory (λ) is strong; you have a clear sense of what matters long-term.";
       } else if (lambda > 0.6) {
-        lambdaText = "λ is moderate — you know the general direction, even if some details are still flexible.";
+        lambdaText =
+          "λ is moderate — you know the general direction, even if some details are still flexible.";
       } else {
-        lambdaText = "λ is gentle — this is a good window for re-evaluating what ‘the main arc’ actually is.";
+        lambdaText =
+          "λ is gentle — this is a good window for re-evaluating what ‘the main arc’ actually is.";
       }
 
       let muText;
@@ -1040,124 +1057,120 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     //  HISTORY GRAPH
     // -------------------------------------------------------------------------
 
-    function getWindowMs() {
-      if (!windowSelect) return 10 * 60 * 1000;
-      switch (windowSelect.value) {
-        case "10m":
-          return 10 * 60 * 1000;
-        case "1h":
-          return 60 * 60 * 1000;
-        case "6h":
-          return 6 * 60 * 60 * 1000;
-        case "24h":
-          return 24 * 60 * 60 * 1000;
-        case "7d":
-          return 7 * 24 * 60 * 60 * 1000;
-        case "30d":
-          return 30 * 24 * 60 * 60 * 1000;
-        case "365d":
-          return 365 * 24 * 60 * 60 * 1000;
-        default:
-          return 10 * 60 * 1000;
-      }
+    function resizeHistoryCanvas() {
+      if (!historyCanvas) return;
+      const ratio = window.devicePixelRatio || 1;
+      const displayWidth = historyCanvas.clientWidth;
+      const displayHeight = historyCanvas.clientHeight;
+      historyCanvas.width = displayWidth * ratio;
+      historyCanvas.height = displayHeight * ratio;
+      historyCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
     }
 
-    function renderHistoryChart() {
-      if (!historyCanvas || !historyCtx) return;
+    function getSelectedDimensions() {
+      const selected = [];
+      const inputs = historyCheckboxesEl.querySelectorAll("input[type=checkbox]");
+      inputs.forEach((cb, idx) => {
+        if (cb.checked) {
+          const dimId = cb.value;
+          const dimIdx = dimensions.findIndex(d => d.id === dimId);
+          if (dimIdx !== -1) {
+            selected.push({ id: dimId, index: dimIdx, color: DIM_COLORS[dimIdx] });
+          }
+        }
+      });
+      return selected;
+    }
 
-      const rect = historyCanvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
+    function updateHistoryChart() {
+      if (!historyCtx || stateHistory.length === 0) return;
 
-      historyCanvas.width = rect.width * dpr;
-      historyCanvas.height = rect.height * dpr;
-      historyCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
+      const selectedDims = getSelectedDimensions();
       const ctx = historyCtx;
-      const width = rect.width;
-      const height = rect.height;
+      const width = historyCanvas.clientWidth;
+      const height = historyCanvas.clientHeight;
 
       ctx.clearRect(0, 0, width, height);
 
-      if (!stateHistory.length) return;
+      // padding inside chart
+      const padL = 30;
+      const padR = 10;
+      const padT = 10;
+      const padB = 18;
 
-      const windowMs = getWindowMs();
+      // time window
+      const mode = historyWindowEl.value || "10min";
+      const windowMs = WINDOW_MS[mode] || WINDOW_MS["10min"];
       const now = Date.now();
       const minT = now - windowMs;
 
-      let points = stateHistory.filter(p => p.t >= minT);
-      if (!points.length) {
-        // not enough history in that window; fall back to last N points
-        const n = Math.min(30, stateHistory.length);
-        points = stateHistory.slice(stateHistory.length - n);
-      }
+      const visible = stateHistory.filter(p => p.t >= minT);
+      const data = visible.length > 0 ? visible : stateHistory;
 
-      if (points.length < 2) return;
+      const t0 = data[0].t;
+      const t1 = data[data.length - 1].t || (t0 + 1);
 
-      const selectedDims = Array.from(historyCheckboxEls || [])
-        .filter(cb => cb.checked)
-        .map(cb => cb.dataset.dim);
+      const xScale = (t) =>
+        padL + ((t - t0) / (t1 - t0 || 1)) * (width - padL - padR);
 
-      if (!selectedDims.length) return;
+      const yScale = (v) =>
+        padT + (1 - v / 5) * (height - padT - padB);
 
-      const paddingLeft = 30;
-      const paddingRight = 10;
-      const paddingTop = 10;
-      const paddingBottom = 20;
-
-      const tMin = points[0].t;
-      const tMax = points[points.length - 1].t;
-      const timeSpan = Math.max(tMax - tMin, 1000);
-
-      const maxVal = 5;
-      const minVal = 0;
-      const valSpan = maxVal - minVal || 1;
-
-      // grid + axes
-      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      // grid lines (0..5)
+      ctx.strokeStyle = "rgba(160, 170, 210, 0.25)";
       ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(paddingLeft, paddingTop);
-      ctx.lineTo(paddingLeft, height - paddingBottom);
-      ctx.lineTo(width - paddingRight, height - paddingBottom);
-      ctx.stroke();
-
-      ctx.font = "10px system-ui";
-      ctx.fillStyle = "rgba(228,233,255,0.7)";
+      ctx.setLineDash([3, 4]);
       for (let v = 0; v <= 5; v++) {
-        const y = paddingTop + (maxVal - v) / valSpan * (height - paddingTop - paddingBottom);
-        ctx.strokeStyle = "rgba(255,255,255,0.06)";
+        const y = yScale(v);
         ctx.beginPath();
-        ctx.moveTo(paddingLeft, y);
-        ctx.lineTo(width - paddingRight, y);
+        ctx.moveTo(padL, y);
+        ctx.lineTo(width - padR, y);
         ctx.stroke();
-        ctx.fillText(String(v), 6, y + 3);
+      }
+      ctx.setLineDash([]);
+
+      // y labels
+      ctx.fillStyle = "#aeb4d6";
+      ctx.font = "10px system-ui";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      for (let v = 0; v <= 5; v++) {
+        const y = yScale(v);
+        ctx.fillText(String(v), padL - 4, y);
       }
 
-      const colors = [
-        "#4fd1c5", "#f472b6", "#facc15", "#60a5fa",
-        "#a78bfa", "#34d399", "#f97316", "#38bdf8",
-        "#e879f9", "#22c55e", "#f43f5e", "#e5e7eb"
-      ];
-
-      selectedDims.forEach((dimId, idx) => {
+      // draw each selected dimension
+      selectedDims.forEach(({ index, color }) => {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.6;
         ctx.beginPath();
-        points.forEach((p, i) => {
-          const x = paddingLeft +
-            ((p.t - tMin) / timeSpan) * (width - paddingLeft - paddingRight);
-
-          const rawVal =
-            p.state && typeof p.state[dimId] === "number" ? p.state[dimId] : 0;
-
-          const y = paddingTop +
-            (maxVal - rawVal) / valSpan * (height - paddingTop - paddingBottom);
-
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
+        let first = true;
+        data.forEach((p) => {
+          const x = xScale(p.t);
+          const v = p.state[dimensions[index].id];
+          const y = yScale(v);
+          if (first) {
+            ctx.moveTo(x, y);
+            first = false;
+          } else {
+            ctx.lineTo(x, y);
+          }
         });
-        ctx.strokeStyle = colors[idx % colors.length];
-        ctx.lineWidth = 1.4;
         ctx.stroke();
       });
+
+      // if nothing selected, just leave grid
+      if (selectedDims.length === 0) {
+        ctx.fillStyle = "rgba(200,210,240,0.6)";
+        ctx.font = "11px system-ui";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(
+          "Select one or more dimensions above to plot history.",
+          width / 2,
+          height / 2
+        );
+      }
     }
   </script>
 </body>
