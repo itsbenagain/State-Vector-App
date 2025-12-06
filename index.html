@@ -161,51 +161,78 @@
 
     /* RIGHT PANEL */
 
-    .panel {
-      background: radial-gradient(
-        circle at top,
-        #181b24 0%,
-        #070910 55%,
-        #05060a 100%
-      );
-      border-radius: 14px;
-      padding: 14px 16px 12px;
-      box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.04),
-        0 16px 30px rgba(0, 0, 0, 0.9);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      font-size: 0.95rem;
-      max-height: calc(100vh - 20px);
-      overflow: hidden;
-    }
+    /* RIGHT PANEL: slightly more compact so it fits in the viewport */
+.panel {
+  background: radial-gradient(
+    circle at top,
+    #181b24 0%,
+    #070910 55%,
+    #05060a 100%
+  );
+  border-radius: 14px;
 
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-    }
+  /* tighten padding a bit */
+  padding: 10px 14px 8px;
 
-    .panel-header h1 {
-      font-size: 1.4rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 16px 30px rgba(0, 0, 0, 0.9);
 
-    .panel-header span {
-      font-size: 0.78rem;
-      color: #9ea3b5;
-    }
+  display: flex;
+  flex-direction: column;
 
-    .panel-section-title {
-      font-size: 0.86rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: #8fb5ff;
-      margin-bottom: 2px;
-    }
+  /* slightly less vertical gap between sections */
+  gap: 8px;
+
+  /* shrink all panel text just a touch */
+  font-size: 0.9rem;
+
+  /* let the whole panel use (almost) the full viewport height,
+     but keep a tiny margin at top/bottom */
+  max-height: calc(100vh - 8px);
+
+  /* no internal scrolling – the content itself is what we shrank */
+  overflow: hidden;
+}
+
+/* header text slightly smaller to save some height */
+.panel-header h1 {
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.panel-header span {
+  font-size: 0.76rem;
+  color: #9ea3b5;
+}
+
+/* section titles a bit smaller + no extra bottom space */
+.panel-section-title {
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8fb5ff;
+  margin-bottom: 0;
+}
+
+/* make the equation block more compact vertically */
+.panel pre {
+  font-size: 0.9rem;
+  padding: 6px 8px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+/* tighten the “Current Parameters” single-line readout */
+.state-line {
+  font-size: 0.86rem;
+}
+
+/* AI-style paragraph just a hair smaller */
+.ai-analysis {
+  font-size: 0.86rem;
+}
 
     /* put “STATE VECTOR” & x=x*(t) on one line */
 
