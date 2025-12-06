@@ -24,7 +24,7 @@
 
     .app {
       display: grid;
-      grid-template-columns: 3fr 2.5fr;
+      grid-template-columns: 3fr 2.8fr;
       gap: 12px;
       width: 100%;
       max-width: 1280px;
@@ -325,6 +325,7 @@
       flex-wrap: wrap;
       gap: 8px;
       margin-top: 6px;
+      margin-bottom: 4px;
     }
 
     .pill {
@@ -349,6 +350,75 @@
       color: #e6f5ff;
       font-weight: 600;
       font-size: 0.9rem;
+    }
+
+    /* GRAPH SECTION */
+
+    .graph-section {
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .graph-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .graph-checkboxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      max-width: 70%;
+    }
+
+    .graph-checkboxes label {
+      font-size: 0.75rem;
+      color: #c8cce5;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .graph-checkboxes input[type="checkbox"] {
+      width: 12px;
+      height: 12px;
+      cursor: pointer;
+    }
+
+    .time-window-select {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.78rem;
+      color: #b4bad4;
+    }
+
+    .time-window-select select {
+      background: #151925;
+      color: #f5f7ff;
+      border-radius: 6px;
+      border: 1px solid rgba(170, 202, 255, 0.4);
+      padding: 2px 6px;
+      font-size: 0.8rem;
+    }
+
+    .graph-canvas-wrapper {
+      background: radial-gradient(circle at top, #111521 0%, #05060a 60%);
+      border-radius: 10px;
+      border: 1px solid rgba(150, 180, 240, 0.3);
+      padding: 6px;
+    }
+
+    canvas#fieldGraph {
+      width: 100%;
+      height: 180px;
+      display: block;
     }
 
     /* AI ANALYSIS TEXT */
@@ -426,6 +496,27 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
             <span class="value" id="muVal">—</span>
           </div>
         </div>
+
+        <!-- Graph section -->
+        <div class="graph-section">
+          <div class="panel-section-title">Field History</div>
+          <div class="graph-controls">
+            <div id="graphCheckboxes" class="graph-checkboxes"></div>
+            <div class="time-window-select">
+              <span>Window:</span>
+              <select id="timeWindow">
+                <option value="86400000">Day</option>
+                <option value="604800000">Week</option>
+                <option value="2592000000">Month</option>
+                <option value="31536000000">Year</option>
+                <option value="all">All</option>
+              </select>
+            </div>
+          </div>
+          <div class="graph-canvas-wrapper">
+            <canvas id="fieldGraph" width="600" height="180"></canvas>
+          </div>
+        </div>
       </div>
 
       <div>
@@ -471,6 +562,10 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     let boardEl, stateGridEl, paramsEl, coherenceEl, tensionEl,
       dValEl, lambdaValEl, muValEl, timestampEl, aiAnalysisEl;
 
+    // graph refs
+    let graphCanvas, graphCtx, graphCheckboxesEl, timeWindowEl;
+    let selectedDimensions = new Set();
+
     document.addEventListener("DOMContentLoaded", () => {
       boardEl = document.getElementById("board");
       stateGridEl = document.getElementById("stateGrid");
@@ -483,10 +578,20 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       timestampEl = document.getElementById("timestamp");
       aiAnalysisEl = document.getElementById("ai-analysis");
 
+      graphCanvas = document.getElementById("fieldGraph");
+      graphCtx = graphCanvas ? graphCanvas.getContext("2d") : null;
+      graphCheckboxesEl = document.getElementById("graphCheckboxes");
+      timeWindowEl = document.getElementById("timeWindow");
+
       buildSliderCards();
       buildStatePills();
+      buildGraphControls();
       loadFromStorageOrDefaults();
       attachListeners();
+
+      if (timeWindowEl) {
+        timeWindowEl.addEventListener("change", drawGraph);
+      }
     });
 
     // -------------------------------------------------------------------------
@@ -580,6 +685,44 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       });
     }
 
+    function buildGraphControls() {
+      if (!graphCheckboxesEl) return;
+
+      graphCheckboxesEl.innerHTML = "";
+      // default: show a few main ones
+      const defaultIds = new Set(["energy", "focus", "chaosLoad", "longTermTrajectory"]);
+
+      dimensions.forEach((dim, idx) => {
+        const label = document.createElement("label");
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.value = dim.id;
+        if (defaultIds.has(dim.id)) {
+          cb.checked = true;
+          selectedDimensions.add(dim.id);
+        }
+        cb.addEventListener("change", () => {
+          if (cb.checked) {
+            selectedDimensions.add(dim.id);
+          } else {
+            selectedDimensions.delete(dim.id);
+          }
+          drawGraph();
+        });
+
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(dim.label));
+        graphCheckboxesEl.appendChild(label);
+      });
+
+      // if somehow nothing is checked, fall back to energy
+      if (selectedDimensions.size === 0) {
+        selectedDimensions.add("energy");
+        const energyCb = graphCheckboxesEl.querySelector('input[value="energy"]');
+        if (energyCb) energyCb.checked = true;
+      }
+    }
+
     // -------------------------------------------------------------------------
     //  STORAGE
     // -------------------------------------------------------------------------
@@ -621,11 +764,13 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         const now = Date.now();
         updateUI(state, now, { persist: true });
       }
+
+      drawGraph();
     }
 
     function saveToStorage(state, timestampMs) {
       stateHistory.push({ t: timestampMs, state });
-      if (stateHistory.length > 500) {
+      if (stateHistory.length > 1000) {
         stateHistory.shift();
       }
 
@@ -834,6 +979,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       }
 
       updateAIAnalysis(state, { D, lambda, mu, coherencePercent, tensionScale, chaosLoad });
+      drawGraph();
     }
 
     // -------------------------------------------------------------------------
@@ -912,6 +1058,108 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       if (n < 0) return 0;
       if (n > 1) return 1;
       return n;
+    }
+
+    // -------------------------------------------------------------------------
+    //  GRAPH RENDERING
+    // -------------------------------------------------------------------------
+
+    function drawGraph() {
+      if (!graphCtx || !graphCanvas) return;
+      const width = graphCanvas.width;
+      const height = graphCanvas.height;
+      graphCtx.clearRect(0, 0, width, height);
+
+      if (!stateHistory || stateHistory.length === 0 || selectedDimensions.size === 0) {
+        graphCtx.fillStyle = "#8489aa";
+        graphCtx.font = "12px system-ui";
+        graphCtx.fillText("Interact with the board to build a history.", 10, height / 2);
+        return;
+      }
+
+      // time window
+      let windowMs = Infinity;
+      if (timeWindowEl) {
+        const val = timeWindowEl.value;
+        if (val !== "all") {
+          const parsed = Number(val);
+          if (!Number.isNaN(parsed) && parsed > 0) windowMs = parsed;
+        }
+      }
+
+      const now = Date.now();
+      const filtered = stateHistory.filter(p => (windowMs === Infinity ? true : (now - p.t <= windowMs)));
+
+      if (filtered.length < 2) {
+        graphCtx.fillStyle = "#8489aa";
+        graphCtx.font = "12px system-ui";
+        graphCtx.fillText("Not enough history yet for this window.", 10, height / 2);
+        return;
+      }
+
+      const minT = filtered[0].t;
+      const maxT = filtered[filtered.length - 1].t;
+      const dt = maxT - minT || 1;
+
+      const paddingLeft = 30;
+      const paddingRight = 8;
+      const paddingTop = 10;
+      const paddingBottom = 16;
+
+      const plotWidth = width - paddingLeft - paddingRight;
+      const plotHeight = height - paddingTop - paddingBottom;
+
+      // axes
+      graphCtx.strokeStyle = "rgba(170,190,240,0.5)";
+      graphCtx.lineWidth = 1;
+      graphCtx.beginPath();
+      // y-axis
+      graphCtx.moveTo(paddingLeft, paddingTop);
+      graphCtx.lineTo(paddingLeft, height - paddingBottom);
+      // x-axis
+      graphCtx.moveTo(paddingLeft, height - paddingBottom);
+      graphCtx.lineTo(width - paddingRight, height - paddingBottom);
+      graphCtx.stroke();
+
+      // y ticks (0..5)
+      graphCtx.fillStyle = "#9096ba";
+      graphCtx.font = "10px system-ui";
+      for (let v = 0; v <= 5; v++) {
+        const y = paddingTop + (1 - v / 5) * plotHeight;
+        graphCtx.globalAlpha = 0.25;
+        graphCtx.beginPath();
+        graphCtx.moveTo(paddingLeft, y);
+        graphCtx.lineTo(width - paddingRight, y);
+        graphCtx.stroke();
+        graphCtx.globalAlpha = 1;
+        graphCtx.fillText(String(v), 4, y + 3);
+      }
+
+      // color helper
+      const getColorForDim = (dimId) => {
+        const idx = dimensions.findIndex(d => d.id === dimId);
+        const hue = (idx / dimensions.length) * 360;
+        return `hsl(${hue}, 75%, 60%)`;
+      };
+
+      // draw each selected dimension
+      selectedDimensions.forEach((dimId) => {
+        graphCtx.beginPath();
+        filtered.forEach((point, i) => {
+          const relT = (point.t - minT) / dt;
+          const x = paddingLeft + relT * plotWidth;
+          const val = (point.state && typeof point.state[dimId] === "number") ? point.state[dimId] : 0;
+          const y = paddingTop + (1 - Math.max(0, Math.min(5, val)) / 5) * plotHeight;
+          if (i === 0) {
+            graphCtx.moveTo(x, y);
+          } else {
+            graphCtx.lineTo(x, y);
+          }
+        });
+        graphCtx.strokeStyle = getColorForDim(dimId);
+        graphCtx.lineWidth = 1.5;
+        graphCtx.stroke();
+      });
     }
   </script>
 </body>
