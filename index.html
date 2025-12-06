@@ -231,26 +231,25 @@
     }
 
     .state-pill {
-      font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.7rem;
-      border-radius: 10px;
-      padding: 4px 7px;
-      background: linear-gradient(130deg, #1d2536, #141722);
-      border: 1px solid rgba(167, 196, 255, 0.32);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-    }
+    font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.62rem;        /* smaller so they fit in one line */
+    border-radius: 8px;        /* tighter shape */
+    padding: 2px 5px;          /* less padding = narrower pills */
+    background: linear-gradient(130deg, #1d2536, #141722);
+    border: 1px solid rgba(167, 196, 255, 0.32);
+    display: flex;
+    justify-content: center;    /* center contents instead of spacing them apart */
+    align-items: center;
+    gap: 3px;                   /* slightly reduced */
+    white-space: nowrap;
+}
 
-    .state-pill .label {
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #aab2d3;
-      font-size: 0.7rem;
-    }
-
+   .state-pill .label {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #aabd2d3;
+    font-size: 0.62rem;     /* match pill size */
+}
     .state-pill .value {
       color: #e7f4ff;
       font-weight: 600;
@@ -260,14 +259,17 @@
     /* EQUATION BLOCK ------------------------------------------------------- */
 
     pre {
-      font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.86rem;
-      background: rgba(0, 0, 0, 0.35);
-      padding: 8px 10px;
-      border-radius: 8px;
-      overflow: auto;
-      line-height: 1.35;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+  font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.88rem;          /* slightly smaller */
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px 10px;           /* less vertical padding */
+  border-radius: 10px;
+  overflow: auto;
+  line-height: 1.25;           /* tighter lines */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
     }
 
     /* PARAMETER LINE ------------------------------------------------------- */
