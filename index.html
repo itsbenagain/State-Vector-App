@@ -32,9 +32,16 @@
 
     @media (max-width: 1024px) {
       .app {
-        grid-template-columns: 1fr;
-      }
-    }
+  display: grid;
+  grid-template-columns: 3fr 2.5fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 1280px;
+
+  /* shrink everything inside the app by 0.9 (10%) */
+  transform: scale(0.9);
+  transform-origin: top center;
+}
 
     /* LEFT BOARD --------------------------------------------------------- */
 
@@ -165,11 +172,6 @@
       overflow: hidden;
     }
 
-    /* Compress the entire right-side panel vertically by 10% */
-.right-panel {
-    transform: scaleY(0.70);
-    transform-origin: top;
-}
     
     .panel-inner-scroll {
       display: flex;
