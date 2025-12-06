@@ -10,10 +10,6 @@
       padding: 0;
     }
 
-    html, body {
-      height: 100%;
-    }
-
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
         "Segoe UI", sans-serif;
@@ -24,7 +20,6 @@
       justify-content: center;
       align-items: stretch;
       padding: 10px;
-      overflow: hidden; /* desktop: lock to viewport height */
     }
 
     .app {
@@ -33,17 +28,30 @@
       gap: 10px;
       width: 100%;
       max-width: 1280px;
-      height: 100%;
+      max-height: calc(100vh - 20px);
     }
 
-    /* ---------- BOARD (LEFT) ---------- */
+    @media (max-width: 1100px) {
+      .app {
+        grid-template-columns: 1fr;
+        max-height: none;
+      }
+    }
+
+    /* LEFT BOARD ----------------------------------------------------------- */
 
     .board {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      grid-template-rows: repeat(3, 1fr);  /* 3 rows -> always fits vertically */
+      grid-auto-rows: 1fr;
       gap: 8px;
-      height: 100%;
+      align-content: stretch;
+    }
+
+    @media (max-width: 1024px) {
+      .board {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
     }
 
     .card {
@@ -54,43 +62,40 @@
         #05060a 100%
       );
       border-radius: 12px;
-      padding: 6px 4px 8px;
+      padding: 8px 6px 10px;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
-      justify-content: flex-start;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04),
         0 12px 24px rgba(0, 0, 0, 0.85);
+      min-height: 170px;
     }
 
     .card h3 {
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       text-align: center;
-      white-space: nowrap;
     }
 
     .slider-wrapper {
-      flex: 1;
       display: flex;
       flex-direction: row;
       align-items: center;
-      justify-content: center;
-      gap: 4px;
-      width: 100%;
+      gap: 3px;
     }
 
     .ticks {
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 90px;
-      font-size: 0.6rem;
+      height: 95px;
+      font-size: 0.58rem;
       color: #a0a4b4;
-      line-height: 1.1;
+      line-height: 1.05;
       margin-right: 2px;
     }
 
@@ -110,17 +115,17 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
-      margin-left: 4px;
+      margin-left: 3px;
     }
 
     .slider-btn {
       width: 30px;
       height: 30px;
-      border-radius: 10px;
+      border-radius: 9px;
       border: 1px solid rgba(132, 189, 255, 0.5);
       background: radial-gradient(circle at top, #242c3b 0%, #151925 70%);
       color: #f4f7ff;
-      font-size: 1rem;
+      font-size: 1.05rem;
       line-height: 1;
       cursor: pointer;
       display: flex;
@@ -137,12 +142,12 @@
     }
 
     .value-label {
-      margin-top: 4px;
+      margin-top: 3px;
       font-size: 0.7rem;
       color: #c0c4d4;
     }
 
-    /* ---------- PANEL (RIGHT) ---------- */
+    /* RIGHT PANEL ---------------------------------------------------------- */
 
     .panel {
       background: radial-gradient(
@@ -151,17 +156,23 @@
         #070910 55%,
         #05060a 100%
       );
-      border-radius: 16px;
-      padding: 16px 18px 16px;
+      border-radius: 14px;
+      padding: 14px 16px 14px;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04),
-        0 18px 32px rgba(0, 0, 0, 0.9);
+        0 16px 30px rgba(0, 0, 0, 0.9);
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      font-size: 0.95rem;
-      height: 100%;
-      overflow: auto; /* if text + graph overflow, scroll just the panel */
+      gap: 10px;
+      font-size: 0.9rem;
+      max-height: calc(100vh - 20px);
+      overflow-y: auto;
+    }
+
+    @media (max-width: 1100px) {
+      .panel {
+        max-height: none;
+      }
     }
 
     .panel-header {
@@ -172,27 +183,26 @@
     }
 
     .panel-header h1 {
-      font-size: 1.7rem;
-      letter-spacing: 0.08em;
+      font-size: 1.6rem;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
     }
 
     .subtitle {
-      font-size: 0.75rem;
-      letter-spacing: 0.2em;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: #9aa5c8;
+      color: #8fb5ff;
       margin-top: 2px;
     }
 
     .panel-header span {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: #9ea3b5;
-      white-space: nowrap;
     }
 
     .panel-section-title {
-      font-size: 0.9rem;
+      font-size: 0.86rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: #8fb5ff;
@@ -200,9 +210,9 @@
     }
 
     .state-label-line {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: #c3c7da;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .state-label-line span {
@@ -211,13 +221,13 @@
       margin-left: 6px;
     }
 
-    /* STATE GRID / PILLS */
+    /* STATE GRID / PILLS --------------------------------------------------- */
 
     .state-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 5px;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .state-pill {
@@ -244,32 +254,32 @@
     .state-pill .value {
       color: #e7f4ff;
       font-weight: 600;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
     }
 
-    /* EQUATION BLOCK */
+    /* EQUATION BLOCK ------------------------------------------------------- */
 
     pre {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.9rem;
+      font-size: 0.86rem;
       background: rgba(0, 0, 0, 0.35);
       padding: 8px 10px;
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: auto;
       line-height: 1.35;
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    /* PARAMETER LINE */
+    /* PARAMETER LINE ------------------------------------------------------- */
 
     .state-line {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.86rem;
+      font-size: 0.84rem;
       white-space: pre-wrap;
       word-break: break-word;
     }
 
-    /* METRICS PILLS */
+    /* METRICS PILLS -------------------------------------------------------- */
 
     .metrics-row {
       display: flex;
@@ -279,7 +289,7 @@
     }
 
     .pill {
-      font-size: 0.86rem;
+      font-size: 0.82rem;
       border-radius: 999px;
       padding: 5px 10px;
       background: linear-gradient(120deg, #1f2a3f, #151a26);
@@ -293,20 +303,89 @@
       color: #9da5c4;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
     }
 
     .pill span.value {
       color: #e6f5ff;
       font-weight: 600;
-      font-size: 0.86rem;
+      font-size: 0.84rem;
     }
 
+    /* AI ANALYSIS ---------------------------------------------------------- */
+
     .ai-analysis {
-      margin-top: 2px;
-      font-size: 0.9rem;
+      margin-top: 3px;
+      font-size: 0.86rem;
       color: #d0d4ea;
     }
+
+    /* HISTORY -------------------------------------------------------------- */
+
+    .history-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .window-select {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.78rem;
+      color: #c0c4dd;
+    }
+
+    .window-select label {
+      opacity: 0.8;
+    }
+
+    #windowSelect {
+      background: #101320;
+      border-radius: 999px;
+      border: 1px solid rgba(160, 190, 255, 0.6);
+      color: #f5f5ff;
+      padding: 2px 8px;
+      font-size: 0.78rem;
+    }
+
+    .history-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      margin-top: 4px;
+      font-size: 0.76rem;
+    }
+
+    .history-controls label {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+    }
+
+    .history-controls input[type="checkbox"] {
+      width: 10px;
+      height: 10px;
+    }
+
+    .history-graph-wrapper {
+      margin-top: 6px;
+      border-radius: 10px;
+      background: radial-gradient(circle at top, #12151f 0%, #05060a 70%);
+      border: 1px solid rgba(120, 150, 230, 0.4);
+      padding: 6px;
+      height: 170px;
+    }
+
+    #historyCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* FOOTER --------------------------------------------------------------- */
 
     .footer-note {
       margin-top: 4px;
@@ -315,116 +394,21 @@
       text-align: right;
     }
 
-    /* ---------- HISTORY GRAPH ---------- */
-
-    .history-controls-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px 14px;
-      align-items: center;
-      margin-bottom: 4px;
-      font-size: 0.78rem;
-    }
-
-    .history-checkboxes {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 12px;
-    }
-
-    .history-checkboxes label {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.75rem;
-      color: #cfd5f0;
-      white-space: nowrap;
-    }
-
-    .history-window {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.78rem;
-      color: #cfd5f0;
-    }
-
-    .history-window select {
-      background: #10131c;
-      color: #f5f5f5;
-      border-radius: 999px;
-      border: 1px solid rgba(160, 193, 255, 0.6);
-      padding: 3px 14px 4px;
-      font-size: 0.78rem;
-      outline: none;
-    }
-
-    .history-chart-wrapper {
-      margin-top: 4px;
-      border-radius: 12px;
-      border: 1px solid rgba(120, 150, 220, 0.45);
-      background: radial-gradient(circle at top, #141723 0%, #05060a 70%);
-      padding: 6px;
-    }
-
-    #historyCanvas {
-      width: 100%;
-      height: 170px; /* CSS height; JS will sync real pixels */
-      display: block;
-    }
-
-    /* ---------- RESPONSIVE ---------- */
-
-    @media (max-width: 1024px) {
-      body {
-        overflow: auto; /* allow scrolling on tablets/phones */
-      }
-
-      .app {
-        height: auto;
-        grid-template-columns: 1fr;
-      }
-
-      .board {
-        height: auto;
-      }
-    }
-
     @media (max-width: 650px) {
       body {
         padding: 6px;
       }
-
-      .board {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-rows: repeat(6, minmax(0, 1fr));
+      .app {
+        max-width: 100%;
       }
-
       .panel {
-        font-size: 1rem;
+        font-size: 0.98rem;
       }
-
       .panel-header h1 {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
       }
-
-      .slider-btn {
-        width: 34px;
-        height: 34px;
-        font-size: 1.1rem;
-      }
-
-      .card h3 {
-        font-size: 0.8rem;
-      }
-
-      .ticks {
-        height: 90px;
-      }
-
-      .slider-vertical {
-        height: 90px;
+      .card {
+        min-height: 155px;
       }
     }
   </style>
@@ -434,12 +418,12 @@
     <!-- LEFT: Slider Board -->
     <div class="board" id="board"></div>
 
-    <!-- RIGHT: Equation / Parameters Panel -->
+    <!-- RIGHT: Panel -->
     <div class="panel">
       <div class="panel-header">
         <div>
           <h1>STATEBOARD</h1>
-          <div class="subtitle">UNIFIED CONSCIOUSNESS FIELD BOARD</div>
+          <div class="subtitle">Unified Consciousness Field Board</div>
         </div>
         <span id="timestamp">Last change: —</span>
       </div>
@@ -491,37 +475,35 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         </div>
       </div>
 
-      <!-- HISTORY GRAPH -->
+      <!-- AI-style analysis ABOVE history -->
       <div>
-        <div class="panel-section-title">Field History</div>
-
-        <div class="history-controls-row">
-          <div class="history-checkboxes" id="historyCheckboxes">
-            <!-- checkboxes injected via JS -->
-          </div>
-          <div class="history-window">
-            <span>Window:</span>
-            <select id="windowSelect">
-              <option value="10min" selected>10 min</option>
-              <option value="1h">1 hour</option>
-              <option value="1d">Day</option>
-              <option value="1w">Week</option>
-              <option value="1m">Month</option>
-              <option value="1y">Year</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="history-chart-wrapper" id="historyChartWrapper">
-          <canvas id="historyCanvas"></canvas>
-        </div>
-      </div>
-
-      <div>
-        <div class="panel-section-title">Field Analysis</div>
+        <div class="panel-section-title">Field Analysis (AI-style)</div>
         <div id="ai-analysis" class="state-line ai-analysis">
           Adjust the board to get a live reading of how coherent, intense, and
           reconfiguring your current field is.
+        </div>
+      </div>
+
+      <!-- Field history graph -->
+      <div>
+        <div class="panel-section-title history-title-row">
+          <span>Field History</span>
+          <div class="window-select">
+            <label for="windowSelect">Window:</label>
+            <select id="windowSelect">
+              <option value="600000" selected>10 min</option>
+              <option value="3600000">1 hour</option>
+              <option value="21600000">6 hours</option>
+              <option value="86400000">Day</option>
+              <option value="604800000">Week</option>
+              <option value="2592000000">Month (30 d)</option>
+              <option value="31536000000">Year</option>
+            </select>
+          </div>
+        </div>
+        <div class="history-controls" id="historyControls"></div>
+        <div class="history-graph-wrapper">
+          <canvas id="historyCanvas"></canvas>
         </div>
       </div>
 
@@ -534,7 +516,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
 
   <script>
     // -------------------------------------------------------------------------
-    //  DIMENSIONS
+    // DIMENSIONS
     // -------------------------------------------------------------------------
     const dimensions = [
       { id: "energy", label: "Energy" },
@@ -555,33 +537,12 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     const STORAGE_LAST_STATE_KEY = "fieldBoardLastState_v1";
     const STORAGE_LAST_TIME_KEY = "fieldBoardLastTime_v1";
 
-    const WINDOW_MS = {
-      "10min": 10 * 60 * 1000,
-      "1h": 60 * 60 * 1000,
-      "1d": 24 * 60 * 60 * 1000,
-      "1w": 7 * 24 * 60 * 60 * 1000,
-      "1m": 30 * 24 * 60 * 60 * 1000,
-      "1y": 365 * 24 * 60 * 60 * 1000
-    };
-
-    let stateHistory = [];
+    let stateHistory = []; // [{ t, state }]
     let lastTimestampMs = null;
 
-    let boardEl,
-      stateGridEl,
-      paramsEl,
-      coherenceEl,
-      tensionEl,
-      dValEl,
-      lambdaValEl,
-      muValEl,
-      timestampEl,
-      aiAnalysisEl,
-      historyCheckboxesEl,
-      windowSelectEl,
-      historyCanvas,
-      historyCtx,
-      historyWrapperEl;
+    let boardEl, stateGridEl, paramsEl, coherenceEl, tensionEl,
+      dValEl, lambdaValEl, muValEl, timestampEl, aiAnalysisEl;
+    let historyControlsEl, windowSelectEl, historyCanvas, historyCtx;
 
     document.addEventListener("DOMContentLoaded", () => {
       boardEl = document.getElementById("board");
@@ -594,31 +555,22 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       muValEl = document.getElementById("muVal");
       timestampEl = document.getElementById("timestamp");
       aiAnalysisEl = document.getElementById("ai-analysis");
-      historyCheckboxesEl = document.getElementById("historyCheckboxes");
+      historyControlsEl = document.getElementById("historyControls");
       windowSelectEl = document.getElementById("windowSelect");
       historyCanvas = document.getElementById("historyCanvas");
-      historyWrapperEl = document.getElementById("historyChartWrapper");
-
-      if (historyCanvas) {
-        historyCtx = historyCanvas.getContext("2d");
-      }
+      historyCtx = historyCanvas.getContext("2d");
 
       buildSliderCards();
       buildStatePills();
       buildHistoryControls();
       loadFromStorageOrDefaults();
       attachListeners();
-      resizeHistoryCanvas();
-      updateHistoryChart();
-    });
-
-    window.addEventListener("resize", () => {
-      resizeHistoryCanvas();
-      updateHistoryChart();
+      renderHistory(); // initial
+      window.addEventListener("resize", renderHistory);
     });
 
     // -------------------------------------------------------------------------
-    //  BUILD UI
+    // BUILD UI
     // -------------------------------------------------------------------------
 
     function buildSliderCards() {
@@ -708,22 +660,27 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     }
 
     function buildHistoryControls() {
-      if (!historyCheckboxesEl) return;
-
+      if (!historyControlsEl) return;
+      historyControlsEl.innerHTML = "";
       dimensions.forEach((dim) => {
         const label = document.createElement("label");
         const cb = document.createElement("input");
         cb.type = "checkbox";
-        cb.value = dim.id;
-        cb.checked = ["health", "environment", "chaosLoad"].includes(dim.id); // default subset
+        cb.className = "history-toggle";
+        cb.dataset.id = dim.id;
+        // default: chaos + health + environment checked, rest off
+        cb.checked =
+          dim.id === "health" ||
+          dim.id === "environment" ||
+          dim.id === "chaosLoad";
         label.appendChild(cb);
-        label.appendChild(document.createTextNode(" " + dim.label));
-        historyCheckboxesEl.appendChild(label);
+        label.appendChild(document.createTextNode(dim.label));
+        historyControlsEl.appendChild(label);
       });
     }
 
     // -------------------------------------------------------------------------
-    //  STORAGE
+    // STORAGE
     // -------------------------------------------------------------------------
 
     function loadFromStorageOrDefaults() {
@@ -767,7 +724,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
 
     function saveToStorage(state, timestampMs) {
       stateHistory.push({ t: timestampMs, state });
-      if (stateHistory.length > 800) {
+      if (stateHistory.length > 1000) {
         stateHistory.shift();
       }
 
@@ -781,14 +738,14 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     }
 
     // -------------------------------------------------------------------------
-    //  LISTENERS
+    // LISTENERS
     // -------------------------------------------------------------------------
 
     function attachListeners() {
       dimensions.forEach((dim) => {
         const slider = document.getElementById(dim.id);
         if (!slider) return;
-        slider.addEventListener("input", () => handleSliderChange());
+        slider.addEventListener("input", handleSliderChange);
       });
 
       if (boardEl) {
@@ -810,16 +767,11 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         });
       }
 
-      if (historyCheckboxesEl) {
-        historyCheckboxesEl.addEventListener("change", () => {
-          updateHistoryChart();
-        });
+      if (historyControlsEl) {
+        historyControlsEl.addEventListener("change", renderHistory);
       }
-
       if (windowSelectEl) {
-        windowSelectEl.addEventListener("change", () => {
-          updateHistoryChart();
-        });
+        windowSelectEl.addEventListener("change", renderHistory);
       }
     }
 
@@ -827,10 +779,11 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       const state = getStateVector();
       const now = Date.now();
       updateUI(state, now, { persist: true });
+      renderHistory();
     }
 
     // -------------------------------------------------------------------------
-    //  STATE / PARAMETERS
+    // STATE / PARAMETERS
     // -------------------------------------------------------------------------
 
     function getStateVector() {
@@ -886,12 +839,14 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       const ncl = expo(norm(chaosLoad), 1.0);
       const nlt = expo(norm(longTermTrajectory), 1.05);
 
+      // D (exploration / looseness)
       let D =
         0.3 * (1 - nf) +
         0.25 * (1 - nsg) +
         0.25 * (1 - nen) +
         0.4 * ncl;
 
+      // λ (pull of core trajectory)
       let lambda =
         0.25 * ne +
         0.18 * nm +
@@ -901,6 +856,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         0.09 * nh +
         0.08 * nlt;
 
+      // μ (reframing / inversion)
       let mu =
         0.4 * nco +
         0.25 * ncl +
@@ -938,7 +894,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     }
 
     // -------------------------------------------------------------------------
-    //  UI UPDATE
+    // UI UPDATE
     // -------------------------------------------------------------------------
 
     function updateUI(state, timestampMs, { persist }) {
@@ -993,18 +949,16 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         tensionScale,
         chaosLoad
       });
-      updateHistoryChart();
     }
 
     // -------------------------------------------------------------------------
-    //  "AI" ANALYSIS
+    // AI ANALYSIS TEXT
     // -------------------------------------------------------------------------
 
     function updateAIAnalysis(state, params) {
       if (!aiAnalysisEl) return;
 
-      const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } =
-        params;
+      const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } = params;
       const chaosLevel = normalizeChaos(chaosLoad);
 
       let coherenceText;
@@ -1013,13 +967,13 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
           "very coherent — your priorities are lining up and the field feels locked in.";
       } else if (coherencePercent >= 65) {
         coherenceText =
-          "solid and focused — there's clear direction with enough flexibility to breathe.";
+          "solid and focused — there’s clear direction with enough flexibility to breathe.";
       } else if (coherencePercent >= 45) {
         coherenceText =
           "in an integration phase — multiple threads are active and learning how to sit together.";
       } else {
         coherenceText =
-          "reconfiguring — you're in a remix zone where the system is trying new combinations.";
+          "reconfiguring — you’re in a remix zone where the system is trying new combinations.";
       }
 
       let chaosText;
@@ -1043,7 +997,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
           "Stability is high: your moves are deliberate and changes propagate slowly.";
       } else if (D < 0.9) {
         Dtext =
-          "You're in a mixed stability/exploration mode — trying things without losing the plot.";
+          "You’re in a mixed stability / exploration mode — trying things without losing the plot.";
       } else {
         Dtext =
           "Exploration is dominant — this is a ‘try lots of moves and see what sticks’ moment.";
@@ -1067,10 +1021,10 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
           "μ is high: big reframe energy — expect reinterpretations, perspective flips, and unexpected connections.";
       } else if (mu > 0.5) {
         muText =
-          "μ is moderate: you're open to new meanings without losing the basic story.";
+          "μ is moderate: you’re open to new meanings without losing the basic story.";
       } else {
         muText =
-          "μ is low: you're reading life pretty literally right now, with minimal reinterpretation.";
+          "μ is low: you’re reading life pretty literally right now, with minimal reinterpretation.";
       }
 
       aiAnalysisEl.textContent =
@@ -1090,123 +1044,86 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     }
 
     // -------------------------------------------------------------------------
-    //  HISTORY GRAPH
+    // HISTORY GRAPH
     // -------------------------------------------------------------------------
 
-    function resizeHistoryCanvas() {
-      if (!historyCanvas || !historyWrapperEl) return;
-      const rect = historyWrapperEl.getBoundingClientRect();
-      historyCanvas.width = rect.width - 12; // a bit of padding
-      const cssHeight = parseFloat(
-        getComputedStyle(historyCanvas).getPropertyValue("height")
-      );
-      historyCanvas.height = cssHeight || 170;
-    }
+    const historyColors = [
+      "#40e0ff",
+      "#ffb347",
+      "#9b6bff",
+      "#ff6b88",
+      "#36f58f",
+      "#ffd447",
+      "#9df",
+      "#7bf5ff",
+      "#f2a0ff",
+      "#b0ff80",
+      "#ff4f6a",
+      "#84c5ff"
+    ];
 
-    function updateHistoryChart() {
-      if (!historyCtx || !historyCanvas) return;
+    function renderHistory() {
+      if (!historyCanvas || !historyCtx) return;
+      const width = historyCanvas.clientWidth;
+      const height = historyCanvas.clientHeight;
+      if (width === 0 || height === 0) return;
+      historyCanvas.width = width * window.devicePixelRatio;
+      historyCanvas.height = height * window.devicePixelRatio;
+      historyCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      historyCtx.clearRect(0, 0, width, height);
+
+      const windowMs = Number(windowSelectEl?.value || 600000);
       const now = Date.now();
-      const windowKey = windowSelectEl ? windowSelectEl.value : "10min";
-      const spanMs = WINDOW_MS[windowKey] || WINDOW_MS["10min"];
+      const from = now - windowMs;
 
-      const visibleHistory = stateHistory.filter(
-        (entry) => now - entry.t <= spanMs
-      );
-      if (visibleHistory.length === 0) {
-        // if nothing in that window yet, just show last few points overall
-        const tail = stateHistory.slice(-20);
-        drawHistoryLines(tail);
-      } else {
-        drawHistoryLines(visibleHistory);
-      }
-    }
-
-    function drawHistoryLines(history) {
-      const ctx = historyCtx;
-      const canvas = historyCanvas;
-      const w = canvas.width;
-      const h = canvas.height;
-
-      ctx.clearRect(0, 0, w, h);
-
-      if (!history || history.length === 0) {
-        ctx.fillStyle = "rgba(200,210,240,0.7)";
-        ctx.font = "11px system-ui";
-        ctx.fillText("Interact with the sliders to start building history.", 10, h / 2);
-        return;
-      }
+      const visible = stateHistory.filter(pt => pt.t >= from);
+      if (visible.length === 0) return;
 
       // axes
-      ctx.strokeStyle = "rgba(110,130,190,0.7)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(32, 10);
-      ctx.lineTo(32, h - 18);
-      ctx.lineTo(w - 8, h - 18);
-      ctx.stroke();
-
-      // y ticks 0–5
-      ctx.font = "10px system-ui";
-      ctx.fillStyle = "rgba(185,195,225,0.8)";
-      for (let v = 0; v <= 5; v++) {
-        const y = mapValue(v, 0, 5, h - 18, 14);
-        ctx.beginPath();
-        ctx.moveTo(28, y);
-        ctx.lineTo(32, y);
-        ctx.stroke();
-        ctx.fillText(String(v), 16, y + 3);
-      }
-
-      const t0 = history[0].t;
-      const t1 = history[history.length - 1].t;
-      const span = Math.max(1, t1 - t0);
+      historyCtx.strokeStyle = "rgba(200,210,255,0.3)";
+      historyCtx.lineWidth = 1;
+      historyCtx.beginPath();
+      historyCtx.moveTo(30, 10);
+      historyCtx.lineTo(30, height - 20);
+      historyCtx.lineTo(width - 10, height - 20);
+      historyCtx.stroke();
 
       const activeIds = [];
-      if (historyCheckboxesEl) {
-        const cbs = historyCheckboxesEl.querySelectorAll("input[type=checkbox]");
-        cbs.forEach((cb) => {
-          if (cb.checked) activeIds.push(cb.value);
-        });
-      }
-
+      const toggles = document.querySelectorAll(".history-toggle");
+      toggles.forEach((cb) => {
+        if (cb.checked) activeIds.push(cb.dataset.id);
+      });
       if (activeIds.length === 0) return;
 
-      const colors = [
-        "#58d0ff",
-        "#ff89c7",
-        "#ffe27a",
-        "#9bff9b",
-        "#ff8f8f",
-        "#a98bff",
-        "#8df4ff",
-        "#ffcfdf",
-        "#d0ff94",
-        "#ffb3a7",
-        "#b5a2ff",
-        "#7fffd9"
-      ];
+      function xForTime(t) {
+        const ratio = (t - from) / windowMs;
+        return 30 + ratio * (width - 40);
+      }
+
+      function yForValue(v) {
+        const ratio = v / 5; // 0..5
+        return height - 20 - ratio * (height - 40);
+      }
 
       activeIds.forEach((id, idx) => {
-        ctx.beginPath();
-        history.forEach((entry, i) => {
-          const tNorm = (entry.t - t0) / span;
-          const x = mapValue(tNorm, 0, 1, 36, w - 10);
-          const v = (entry.state && typeof entry.state[id] === "number")
-            ? entry.state[id]
-            : 0;
-          const y = mapValue(v, 0, 5, h - 18, 14);
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        });
-        ctx.strokeStyle = colors[idx % colors.length];
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
-      });
-    }
+        historyCtx.beginPath();
+        let first = true;
+        historyCtx.strokeStyle = historyColors[idx % historyColors.length];
+        historyCtx.lineWidth = 1.4;
 
-    function mapValue(v, inMin, inMax, outMin, outMax) {
-      const t = (v - inMin) / (inMax - inMin);
-      return outMin + (outMax - outMin) * t;
+        visible.forEach((pt) => {
+          const v = pt.state?.[id] ?? 0;
+          const x = xForTime(pt.t);
+          const y = yForValue(v);
+          if (first) {
+            historyCtx.moveTo(x, y);
+            first = false;
+          } else {
+            historyCtx.lineTo(x, y);
+          }
+        });
+        historyCtx.stroke();
+      });
     }
   </script>
 </body>
