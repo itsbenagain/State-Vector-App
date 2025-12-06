@@ -2,12 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>StateBoard – Unified Consciousness Field Board</title>
+  <title>StateBoard</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+
+    html, body {
+      height: 100%;
     }
 
     body {
@@ -20,41 +24,26 @@
       justify-content: center;
       align-items: stretch;
       padding: 10px;
+      overflow: hidden; /* desktop: lock to viewport height */
     }
 
     .app {
       display: grid;
-      grid-template-columns: 3fr 2.5fr;
+      grid-template-columns: 3fr 2.4fr;
       gap: 10px;
       width: 100%;
       max-width: 1280px;
+      height: 100%;
     }
 
-    @media (max-width: 1024px) {
-      .app {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* LEFT BOARD */
+    /* ---------- BOARD (LEFT) ---------- */
 
     .board {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      grid-auto-rows: minmax(0, 1fr);
+      grid-template-rows: repeat(3, 1fr);  /* 3 rows -> always fits vertically */
       gap: 8px;
-    }
-
-    @media (max-width: 1200px) {
-      .board {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 800px) {
-      .board {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+      height: 100%;
     }
 
     .card {
@@ -65,36 +54,40 @@
         #05060a 100%
       );
       border-radius: 12px;
-      padding: 6px 6px 8px;
+      padding: 6px 4px 8px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
+      justify-content: flex-start;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04),
-        0 14px 26px rgba(0, 0, 0, 0.85);
+        0 12px 24px rgba(0, 0, 0, 0.85);
     }
 
     .card h3 {
-      font-size: 0.72rem;
-      letter-spacing: 0.08em;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       margin-bottom: 4px;
       text-align: center;
+      white-space: nowrap;
     }
 
     .slider-wrapper {
+      flex: 1;
       display: flex;
       flex-direction: row;
       align-items: center;
-      gap: 3px;
+      justify-content: center;
+      gap: 4px;
+      width: 100%;
     }
 
     .ticks {
       display: flex;
-      flex-direction: column; /* 5 at top, 0 bottom */
+      flex-direction: column;
       justify-content: space-between;
-      height: 80px;
+      height: 90px;
       font-size: 0.6rem;
       color: #a0a4b4;
       line-height: 1.1;
@@ -109,25 +102,25 @@
       writing-mode: bt-lr;
       -webkit-appearance: slider-vertical;
       width: 10px;
-      height: 80px;
+      height: 95px;
       accent-color: #45e0ff;
     }
 
     .slider-buttons {
       display: flex;
       flex-direction: column;
-      gap: 3px;
-      margin-left: 2px;
+      gap: 4px;
+      margin-left: 4px;
     }
 
     .slider-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      border: 1px solid rgba(132, 189, 255, 0.55);
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      border: 1px solid rgba(132, 189, 255, 0.5);
       background: radial-gradient(circle at top, #242c3b 0%, #151925 70%);
       color: #f4f7ff;
-      font-size: 0.95rem;
+      font-size: 1rem;
       line-height: 1;
       cursor: pointer;
       display: flex;
@@ -136,7 +129,7 @@
     }
 
     .slider-btn:hover {
-      border-color: rgba(179, 214, 255, 0.9);
+      border-color: rgba(179, 214, 255, 0.95);
     }
 
     .slider-btn:active {
@@ -144,12 +137,12 @@
     }
 
     .value-label {
-      margin-top: 3px;
+      margin-top: 4px;
       font-size: 0.7rem;
       color: #c0c4d4;
     }
 
-    /* RIGHT PANEL */
+    /* ---------- PANEL (RIGHT) ---------- */
 
     .panel {
       background: radial-gradient(
@@ -159,7 +152,7 @@
         #05060a 100%
       );
       border-radius: 16px;
-      padding: 16px 18px 18px;
+      padding: 16px 18px 16px;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04),
         0 18px 32px rgba(0, 0, 0, 0.9);
@@ -167,6 +160,8 @@
       flex-direction: column;
       gap: 14px;
       font-size: 0.95rem;
+      height: 100%;
+      overflow: auto; /* if text + graph overflow, scroll just the panel */
     }
 
     .panel-header {
@@ -176,28 +171,24 @@
       gap: 8px;
     }
 
-    .title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
     .panel-header h1 {
-      font-size: 1.6rem;
+      font-size: 1.7rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .subtitle {
-      font-size: 0.7rem;
-      letter-spacing: 0.18em;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: #8fb5ff;
+      color: #9aa5c8;
+      margin-top: 2px;
     }
 
     .panel-header span {
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       color: #9ea3b5;
+      white-space: nowrap;
     }
 
     .panel-section-title {
@@ -205,11 +196,11 @@
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: #8fb5ff;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .state-label-line {
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       color: #c3c7da;
       margin-bottom: 6px;
     }
@@ -225,7 +216,7 @@
     .state-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 4px;
+      gap: 5px;
       margin-bottom: 4px;
     }
 
@@ -290,7 +281,7 @@
     .pill {
       font-size: 0.86rem;
       border-radius: 999px;
-      padding: 5px 11px;
+      padding: 5px 10px;
       background: linear-gradient(120deg, #1f2a3f, #151a26);
       border: 1px solid rgba(170, 202, 255, 0.32);
       display: inline-flex;
@@ -302,7 +293,7 @@
       color: #9da5c4;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
     }
 
     .pill span.value {
@@ -311,122 +302,129 @@
       font-size: 0.86rem;
     }
 
-    /* AI ANALYSIS TEXT */
-
     .ai-analysis {
-      margin-top: 4px;
-      font-size: 0.88rem;
+      margin-top: 2px;
+      font-size: 0.9rem;
       color: #d0d4ea;
     }
 
-    /* HISTORY */
-
-    .history-section {
+    .footer-note {
       margin-top: 4px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+      font-size: 0.76rem;
+      color: #727894;
+      text-align: right;
     }
 
-    .history-controls {
+    /* ---------- HISTORY GRAPH ---------- */
+
+    .history-controls-row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
       flex-wrap: wrap;
+      gap: 8px 14px;
+      align-items: center;
+      margin-bottom: 4px;
       font-size: 0.78rem;
     }
 
     .history-checkboxes {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px 10px;
+      gap: 6px 12px;
     }
 
     .history-checkboxes label {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 4px;
+      font-size: 0.75rem;
+      color: #cfd5f0;
+      white-space: nowrap;
     }
 
-    .history-checkboxes input {
-      accent-color: #45e0ff;
-    }
-
-    .window-select {
-      display: inline-flex;
+    .history-window {
+      margin-left: auto;
+      display: flex;
       align-items: center;
       gap: 4px;
+      font-size: 0.78rem;
+      color: #cfd5f0;
     }
 
-    .window-select span {
-      color: #9ea3b5;
-    }
-
-    .window-select select {
-      background: #060712;
+    .history-window select {
+      background: #10131c;
+      color: #f5f5f5;
       border-radius: 999px;
-      border: 1px solid rgba(170, 202, 255, 0.35);
-      color: #f5f7ff;
-      padding: 3px 10px;
+      border: 1px solid rgba(160, 193, 255, 0.6);
+      padding: 3px 14px 4px;
       font-size: 0.78rem;
       outline: none;
     }
 
-    .history-canvas-container {
-      background: radial-gradient(circle at top, #11141e 0%, #05060a 80%);
+    .history-chart-wrapper {
+      margin-top: 4px;
       border-radius: 12px;
-      border: 1px solid rgba(170, 202, 255, 0.25);
-      padding: 8px;
+      border: 1px solid rgba(120, 150, 220, 0.45);
+      background: radial-gradient(circle at top, #141723 0%, #05060a 70%);
+      padding: 6px;
     }
 
     #historyCanvas {
       width: 100%;
-      height: 170px;
+      height: 170px; /* CSS height; JS will sync real pixels */
       display: block;
     }
 
-    /* FOOTER */
+    /* ---------- RESPONSIVE ---------- */
 
-    .footer-note {
-      margin-top: auto;
-      font-size: 0.76rem;
-      color: #727894;
-      text-align: right;
+    @media (max-width: 1024px) {
+      body {
+        overflow: auto; /* allow scrolling on tablets/phones */
+      }
+
+      .app {
+        height: auto;
+        grid-template-columns: 1fr;
+      }
+
+      .board {
+        height: auto;
+      }
     }
-
-    /* Mobile tweaks */
 
     @media (max-width: 650px) {
       body {
         padding: 6px;
       }
 
+      .board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(6, minmax(0, 1fr));
+      }
+
       .panel {
-        font-size: 0.98rem;
+        font-size: 1rem;
       }
 
       .panel-header h1 {
         font-size: 1.4rem;
       }
 
-      .state-line,
-      .ai-analysis {
-        font-size: 0.9rem;
-      }
-
       .slider-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 1rem;
+        width: 34px;
+        height: 34px;
+        font-size: 1.1rem;
       }
 
       .card h3 {
-        font-size: 0.7rem;
+        font-size: 0.8rem;
       }
 
-      #historyCanvas {
-        height: 150px;
+      .ticks {
+        height: 90px;
+      }
+
+      .slider-vertical {
+        height: 90px;
       }
     }
   </style>
@@ -439,9 +437,9 @@
     <!-- RIGHT: Equation / Parameters Panel -->
     <div class="panel">
       <div class="panel-header">
-        <div class="title-block">
-          <h1>StateBoard</h1>
-          <div class="subtitle">Unified Consciousness Field Board</div>
+        <div>
+          <h1>STATEBOARD</h1>
+          <div class="subtitle">UNIFIED CONSCIOUSNESS FIELD BOARD</div>
         </div>
         <span id="timestamp">Last change: —</span>
       </div>
@@ -493,26 +491,28 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         </div>
       </div>
 
-      <div class="history-section">
+      <!-- HISTORY GRAPH -->
+      <div>
         <div class="panel-section-title">Field History</div>
-        <div class="history-controls">
+
+        <div class="history-controls-row">
           <div class="history-checkboxes" id="historyCheckboxes">
-            <!-- checkboxes injected -->
+            <!-- checkboxes injected via JS -->
           </div>
-          <div class="window-select">
+          <div class="history-window">
             <span>Window:</span>
-            <select id="historyWindow">
-              <option value="600000" selected>10 min</option>
-              <option value="3600000">1 hour</option>
-              <option value="21600000">6 hours</option>
-              <option value="86400000">Day</option>
-              <option value="604800000">Week</option>
-              <option value="2629800000">Month (~30d)</option>
-              <option value="31557600000">Year</option>
+            <select id="windowSelect">
+              <option value="10min" selected>10 min</option>
+              <option value="1h">1 hour</option>
+              <option value="1d">Day</option>
+              <option value="1w">Week</option>
+              <option value="1m">Month</option>
+              <option value="1y">Year</option>
             </select>
           </div>
         </div>
-        <div class="history-canvas-container">
+
+        <div class="history-chart-wrapper" id="historyChartWrapper">
           <canvas id="historyCanvas"></canvas>
         </div>
       </div>
@@ -526,7 +526,8 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       </div>
 
       <div class="footer-note">
-        Move the sliders. The 12-dimensional state vector drives (D, λ, μ), which tune the current cut of your unified consciousness field.
+        Move the sliders. The 12-dimensional state vector drives (D, λ, μ),
+        which tune the current cut of your unified consciousness field.
       </div>
     </div>
   </div>
@@ -554,15 +555,33 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     const STORAGE_LAST_STATE_KEY = "fieldBoardLastState_v1";
     const STORAGE_LAST_TIME_KEY = "fieldBoardLastTime_v1";
 
+    const WINDOW_MS = {
+      "10min": 10 * 60 * 1000,
+      "1h": 60 * 60 * 1000,
+      "1d": 24 * 60 * 60 * 1000,
+      "1w": 7 * 24 * 60 * 60 * 1000,
+      "1m": 30 * 24 * 60 * 60 * 1000,
+      "1y": 365 * 24 * 60 * 60 * 1000
+    };
+
     let stateHistory = [];
     let lastTimestampMs = null;
 
-    let boardEl, stateGridEl, paramsEl, coherenceEl, tensionEl,
-      dValEl, lambdaValEl, muValEl, timestampEl, aiAnalysisEl;
-
-    // history UI
-    let historyCanvas, historyCtx, historyWindowSelect;
-    const historyCheckboxMap = new Map();
+    let boardEl,
+      stateGridEl,
+      paramsEl,
+      coherenceEl,
+      tensionEl,
+      dValEl,
+      lambdaValEl,
+      muValEl,
+      timestampEl,
+      aiAnalysisEl,
+      historyCheckboxesEl,
+      windowSelectEl,
+      historyCanvas,
+      historyCtx,
+      historyWrapperEl;
 
     document.addEventListener("DOMContentLoaded", () => {
       boardEl = document.getElementById("board");
@@ -575,19 +594,27 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       muValEl = document.getElementById("muVal");
       timestampEl = document.getElementById("timestamp");
       aiAnalysisEl = document.getElementById("ai-analysis");
-
+      historyCheckboxesEl = document.getElementById("historyCheckboxes");
+      windowSelectEl = document.getElementById("windowSelect");
       historyCanvas = document.getElementById("historyCanvas");
-      historyCtx = historyCanvas.getContext("2d");
-      historyWindowSelect = document.getElementById("historyWindow");
+      historyWrapperEl = document.getElementById("historyChartWrapper");
+
+      if (historyCanvas) {
+        historyCtx = historyCanvas.getContext("2d");
+      }
 
       buildSliderCards();
       buildStatePills();
-      buildHistoryCheckboxes();
-      attachHistoryListeners();
+      buildHistoryControls();
       loadFromStorageOrDefaults();
       attachListeners();
-      redrawHistory(); // initial
-      window.addEventListener("resize", redrawHistory);
+      resizeHistoryCanvas();
+      updateHistoryChart();
+    });
+
+    window.addEventListener("resize", () => {
+      resizeHistoryCanvas();
+      updateHistoryChart();
     });
 
     // -------------------------------------------------------------------------
@@ -680,32 +707,18 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       });
     }
 
-    function buildHistoryCheckboxes() {
-      const container = document.getElementById("historyCheckboxes");
-      if (!container) return;
-      container.innerHTML = "";
+    function buildHistoryControls() {
+      if (!historyCheckboxesEl) return;
 
       dimensions.forEach((dim) => {
         const label = document.createElement("label");
         const cb = document.createElement("input");
         cb.type = "checkbox";
         cb.value = dim.id;
-
-        // Default: show a few that matter most at first load
-        if (
-          dim.id === "energy" ||
-          dim.id === "health" ||
-          dim.id === "environment" ||
-          dim.id === "chaosLoad" ||
-          dim.id === "longTermTrajectory"
-        ) {
-          cb.checked = true;
-        }
-
-        historyCheckboxMap.set(dim.id, cb);
+        cb.checked = ["health", "environment", "chaosLoad"].includes(dim.id); // default subset
         label.appendChild(cb);
         label.appendChild(document.createTextNode(" " + dim.label));
-        container.appendChild(label);
+        historyCheckboxesEl.appendChild(label);
       });
     }
 
@@ -754,7 +767,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
 
     function saveToStorage(state, timestampMs) {
       stateHistory.push({ t: timestampMs, state });
-      if (stateHistory.length > 500) {
+      if (stateHistory.length > 800) {
         stateHistory.shift();
       }
 
@@ -778,31 +791,35 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         slider.addEventListener("input", () => handleSliderChange());
       });
 
-      if (!boardEl) return;
-      const btns = boardEl.querySelectorAll(".slider-btn");
-      btns.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const id = btn.dataset.id;
-          if (!id) return;
-          const slider = document.getElementById(id);
-          if (!slider) return;
-          let value = Number(slider.value);
-          if (btn.classList.contains("plus")) value += 1;
-          if (btn.classList.contains("minus")) value -= 1;
-          if (value < 0) value = 0;
-          if (value > 5) value = 5;
-          slider.value = String(value);
-          handleSliderChange();
+      if (boardEl) {
+        const btns = boardEl.querySelectorAll(".slider-btn");
+        btns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const id = btn.dataset.id;
+            if (!id) return;
+            const slider = document.getElementById(id);
+            if (!slider) return;
+            let value = Number(slider.value);
+            if (btn.classList.contains("plus")) value += 1;
+            if (btn.classList.contains("minus")) value -= 1;
+            if (value < 0) value = 0;
+            if (value > 5) value = 5;
+            slider.value = String(value);
+            handleSliderChange();
+          });
         });
-      });
-    }
+      }
 
-    function attachHistoryListeners() {
-      historyCheckboxMap.forEach((cb) => {
-        cb.addEventListener("change", redrawHistory);
-      });
-      if (historyWindowSelect) {
-        historyWindowSelect.addEventListener("change", redrawHistory);
+      if (historyCheckboxesEl) {
+        historyCheckboxesEl.addEventListener("change", () => {
+          updateHistoryChart();
+        });
+      }
+
+      if (windowSelectEl) {
+        windowSelectEl.addEventListener("change", () => {
+          updateHistoryChart();
+        });
       }
     }
 
@@ -869,14 +886,12 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
       const ncl = expo(norm(chaosLoad), 1.0);
       const nlt = expo(norm(longTermTrajectory), 1.05);
 
-      // D (exploration / looseness)
       let D =
         0.3 * (1 - nf) +
         0.25 * (1 - nsg) +
         0.25 * (1 - nen) +
         0.4 * ncl;
 
-      // λ (pull of core trajectory)
       let lambda =
         0.25 * ne +
         0.18 * nm +
@@ -886,7 +901,6 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         0.09 * nh +
         0.08 * nlt;
 
-      // μ (reframing / inversion)
       let mu =
         0.4 * nco +
         0.25 * ncl +
@@ -905,7 +919,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         0.15 * (lambda / 1.5) -
         0.15 * ncl -
         0.1 * (D / 1.6) +
-        0.05; // baseline
+        0.05;
 
       coherence = Math.max(0, Math.min(1, coherence));
       const coherencePercent = Math.round(coherence * 100);
@@ -971,58 +985,80 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         saveToStorage(state, timestampMs);
       }
 
-      updateAIAnalysis(state, { D, lambda, mu, coherencePercent, tensionScale, chaosLoad });
-      redrawHistory();
+      updateAIAnalysis(state, {
+        D,
+        lambda,
+        mu,
+        coherencePercent,
+        tensionScale,
+        chaosLoad
+      });
+      updateHistoryChart();
     }
 
     // -------------------------------------------------------------------------
-    //  "AI" ANALYSIS (LOCAL, SELF-HELP STYLE)
+    //  "AI" ANALYSIS
     // -------------------------------------------------------------------------
 
     function updateAIAnalysis(state, params) {
       if (!aiAnalysisEl) return;
 
-      const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } = params;
+      const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } =
+        params;
       const chaosLevel = normalizeChaos(chaosLoad);
 
       let coherenceText;
       if (coherencePercent >= 80) {
-        coherenceText = "very coherent — your priorities are lining up and the field feels locked in.";
+        coherenceText =
+          "very coherent — your priorities are lining up and the field feels locked in.";
       } else if (coherencePercent >= 65) {
-        coherenceText = "solid and focused — there's clear direction with enough flexibility to breathe.";
+        coherenceText =
+          "solid and focused — there's clear direction with enough flexibility to breathe.";
       } else if (coherencePercent >= 45) {
-        coherenceText = "in an integration phase — multiple threads are active and learning how to sit together.";
+        coherenceText =
+          "in an integration phase — multiple threads are active and learning how to sit together.";
       } else {
-        coherenceText = "reconfiguring — you're in a remix zone where the system is trying new combinations.";
+        coherenceText =
+          "reconfiguring — you're in a remix zone where the system is trying new combinations.";
       }
 
       let chaosText;
       if (chaosLevel <= 0.15) {
-        chaosText = "Chaos load is very low; things are calm, maybe even a bit under-stimulated.";
+        chaosText =
+          "Chaos load is very low; things are calm, maybe even a bit under-stimulated.";
       } else if (chaosLevel <= 0.4) {
-        chaosText = "Chaos load is in a healthy stimulation band — there’s movement without overload.";
+        chaosText =
+          "Chaos load is in a healthy stimulation band — there’s movement without overload.";
       } else if (chaosLevel <= 0.7) {
-        chaosText = "Chaos is elevated — a lot is happening at once, so simplifying a couple sliders would help.";
+        chaosText =
+          "Chaos is elevated — a lot is happening at once, so simplifying a couple sliders would help.";
       } else {
-        chaosText = "Chaos is running hot — the system is learning through intensity; reducing obligations would instantly free bandwidth.";
+        chaosText =
+          "Chaos is running hot — the system is learning through intensity; reducing obligations would instantly free bandwidth.";
       }
 
       let Dtext;
       if (D < 0.4) {
-        Dtext = "Stability is high: your moves are deliberate and changes propagate slowly.";
+        Dtext =
+          "Stability is high: your moves are deliberate and changes propagate slowly.";
       } else if (D < 0.9) {
-        Dtext = "You're in a mixed stability/exploration mode — trying things without losing the plot.";
+        Dtext =
+          "You're in a mixed stability/exploration mode — trying things without losing the plot.";
       } else {
-        Dtext = "Exploration is dominant — this is a ‘try lots of moves and see what sticks’ moment.";
+        Dtext =
+          "Exploration is dominant — this is a ‘try lots of moves and see what sticks’ moment.";
       }
 
       let lambdaText;
       if (lambda > 1.1) {
-        lambdaText = "The pull of your core trajectory (λ) is strong; you have a clear sense of what matters long-term.";
+        lambdaText =
+          "The pull of your core trajectory (λ) is strong; you have a clear sense of what matters long-term.";
       } else if (lambda > 0.6) {
-        lambdaText = "λ is moderate — you know the general direction, even if some details are still flexible.";
+        lambdaText =
+          "λ is moderate — you know the general direction, even if some details are still flexible.";
       } else {
-        lambdaText = "λ is gentle — this is a good window for re-evaluating what ‘the main arc’ actually is.";
+        lambdaText =
+          "λ is gentle — this is a good window for re-evaluating what ‘the main arc’ actually is.";
       }
 
       let muText;
@@ -1054,94 +1090,123 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
     }
 
     // -------------------------------------------------------------------------
-    //  HISTORY DRAWING
+    //  HISTORY GRAPH
     // -------------------------------------------------------------------------
 
-    function redrawHistory() {
-      if (!historyCanvas || !historyCtx) return;
+    function resizeHistoryCanvas() {
+      if (!historyCanvas || !historyWrapperEl) return;
+      const rect = historyWrapperEl.getBoundingClientRect();
+      historyCanvas.width = rect.width - 12; // a bit of padding
+      const cssHeight = parseFloat(
+        getComputedStyle(historyCanvas).getPropertyValue("height")
+      );
+      historyCanvas.height = cssHeight || 170;
+    }
 
-      const dpr = window.devicePixelRatio || 1;
-      const rect = historyCanvas.getBoundingClientRect();
-      historyCanvas.width = rect.width * dpr;
-      historyCanvas.height = rect.height * dpr;
-
-      const ctx = historyCtx;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, rect.width, rect.height);
-
-      if (!stateHistory.length) return;
-
-      const windowMs = historyWindowSelect
-        ? Number(historyWindowSelect.value || "600000")
-        : 600000;
-
+    function updateHistoryChart() {
+      if (!historyCtx || !historyCanvas) return;
       const now = Date.now();
-      const cutoff = now - windowMs;
+      const windowKey = windowSelectEl ? windowSelectEl.value : "10min";
+      const spanMs = WINDOW_MS[windowKey] || WINDOW_MS["10min"];
 
-      const visible = stateHistory.filter((p) => p.t >= cutoff);
-      if (!visible.length) return;
+      const visibleHistory = stateHistory.filter(
+        (entry) => now - entry.t <= spanMs
+      );
+      if (visibleHistory.length === 0) {
+        // if nothing in that window yet, just show last few points overall
+        const tail = stateHistory.slice(-20);
+        drawHistoryLines(tail);
+      } else {
+        drawHistoryLines(visibleHistory);
+      }
+    }
 
-      const startT = visible[0].t;
-      const endT = visible[visible.length - 1].t || startT;
-      const span = Math.max(endT - startT, 1);
+    function drawHistoryLines(history) {
+      const ctx = historyCtx;
+      const canvas = historyCanvas;
+      const w = canvas.width;
+      const h = canvas.height;
 
-      const padding = 8;
-      const w = rect.width - padding * 2;
-      const h = rect.height - padding * 2;
+      ctx.clearRect(0, 0, w, h);
+
+      if (!history || history.length === 0) {
+        ctx.fillStyle = "rgba(200,210,240,0.7)";
+        ctx.font = "11px system-ui";
+        ctx.fillText("Interact with the sliders to start building history.", 10, h / 2);
+        return;
+      }
 
       // axes
-      ctx.strokeStyle = "rgba(200,210,240,0.45)";
+      ctx.strokeStyle = "rgba(110,130,190,0.7)";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(padding, padding);
-      ctx.lineTo(padding, padding + h);
-      ctx.lineTo(padding + w, padding + h);
+      ctx.moveTo(32, 10);
+      ctx.lineTo(32, h - 18);
+      ctx.lineTo(w - 8, h - 18);
       ctx.stroke();
 
-      // color palette
+      // y ticks 0–5
+      ctx.font = "10px system-ui";
+      ctx.fillStyle = "rgba(185,195,225,0.8)";
+      for (let v = 0; v <= 5; v++) {
+        const y = mapValue(v, 0, 5, h - 18, 14);
+        ctx.beginPath();
+        ctx.moveTo(28, y);
+        ctx.lineTo(32, y);
+        ctx.stroke();
+        ctx.fillText(String(v), 16, y + 3);
+      }
+
+      const t0 = history[0].t;
+      const t1 = history[history.length - 1].t;
+      const span = Math.max(1, t1 - t0);
+
+      const activeIds = [];
+      if (historyCheckboxesEl) {
+        const cbs = historyCheckboxesEl.querySelectorAll("input[type=checkbox]");
+        cbs.forEach((cb) => {
+          if (cb.checked) activeIds.push(cb.value);
+        });
+      }
+
+      if (activeIds.length === 0) return;
+
       const colors = [
-        "#46e0ff",
-        "#ff9cf0",
-        "#ffd66b",
-        "#9dffb7",
-        "#ff8e72",
-        "#c6a3ff",
-        "#7ef9ff",
-        "#ffb3c8",
-        "#b9ff6b",
-        "#ffdf8b",
-        "#8cf5ff",
-        "#ff9a9a"
+        "#58d0ff",
+        "#ff89c7",
+        "#ffe27a",
+        "#9bff9b",
+        "#ff8f8f",
+        "#a98bff",
+        "#8df4ff",
+        "#ffcfdf",
+        "#d0ff94",
+        "#ffb3a7",
+        "#b5a2ff",
+        "#7fffd9"
       ];
 
-      let colorIndex = 0;
-
-      historyCheckboxMap.forEach((cb, dimId) => {
-        if (!cb.checked) return;
-
-        const series = visible.map((p) => ({
-          t: p.t,
-          v: p.state[dimId] ?? 0
-        }));
-
-        if (!series.length) return;
-
-        const color = colors[colorIndex % colors.length];
-        colorIndex += 1;
-
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 1.4;
+      activeIds.forEach((id, idx) => {
         ctx.beginPath();
-
-        series.forEach((pt, i) => {
-          const x = padding + ((pt.t - startT) / span) * w;
-          const y = padding + h - (pt.v / 5) * h;
+        history.forEach((entry, i) => {
+          const tNorm = (entry.t - t0) / span;
+          const x = mapValue(tNorm, 0, 1, 36, w - 10);
+          const v = (entry.state && typeof entry.state[id] === "number")
+            ? entry.state[id]
+            : 0;
+          const y = mapValue(v, 0, 5, h - 18, 14);
           if (i === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         });
-
+        ctx.strokeStyle = colors[idx % colors.length];
+        ctx.lineWidth = 1.4;
         ctx.stroke();
       });
+    }
+
+    function mapValue(v, inMin, inMax, outMin, outMax) {
+      const t = (v - inMin) / (inMax - inMin);
+      return outMin + (outMax - outMin) * t;
     }
   </script>
 </body>
