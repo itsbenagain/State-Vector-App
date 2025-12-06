@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>StateBoard</title>
+  <title>StateBoard – Unified Consciousness Field</title>
   <style>
     * {
       box-sizing: border-box;
@@ -19,30 +19,79 @@
       display: flex;
       justify-content: center;
       align-items: stretch;
-      padding: 10px;
+      padding: 12px;
     }
 
     .app {
       display: grid;
-      grid-template-columns: minmax(0, 3fr) minmax(420px, 2.5fr);
-      gap: 10px;
+      grid-template-columns: 3fr 2.5fr;
+      gap: 12px;
       width: 100%;
       max-width: 1280px;
-      margin: 0 auto;
+      transform: scale(0.9);
+      transform-origin: top center;
+    }
+
+    @media (max-width: 1200px) {
+      .app {
+        transform: scale(0.85);
+      }
     }
 
     @media (max-width: 1024px) {
       .app {
         grid-template-columns: 1fr;
+        transform: scale(0.95);
       }
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 800px) {
       body {
         padding: 6px;
       }
       .app {
-        grid-template-columns: 1fr;
+        max-width: 100%;
+        transform: scale(0.9);
+      }
+    }
+
+    /* Extra mobile tuning: bigger buttons + text */
+    @media (max-width: 650px) {
+      .app {
+        transform: scale(1);
+        max-width: 100%;
+      }
+
+      .panel {
+        font-size: 1.05rem;
+      }
+
+      .panel-header h1 {
+        font-size: 1.4rem;
+      }
+
+      .state-line,
+      .ai-analysis {
+        font-size: 0.98rem;
+      }
+
+      .slider-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+      }
+
+      .card h3 {
+        font-size: 0.8rem;
+      }
+
+      .state-pill {
+        padding: 6px 9px;
+        font-size: 0.78rem;
+      }
+
+      .state-pill .value {
+        font-size: 0.86rem;
       }
     }
 
@@ -52,18 +101,12 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       grid-auto-rows: minmax(0, 1fr);
-      gap: 8px;
+      gap: 10px;
     }
 
     @media (max-width: 1024px) {
       .board {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 640px) {
-      .board {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -74,22 +117,22 @@
         #0c0e14 60%,
         #05060a 100%
       );
-      border-radius: 12px;
-      padding: 10px 6px 10px;
+      border-radius: 14px;
+      padding: 10px 8px 12px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04),
-        0 16px 26px rgba(0, 0, 0, 0.8);
+        0 16px 30px rgba(0, 0, 0, 0.85);
     }
 
     .card h3 {
-      font-size: 0.76rem;
+      font-size: 0.78rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       text-align: center;
     }
 
@@ -102,10 +145,10 @@
 
     .ticks {
       display: flex;
-      flex-direction: column;
+      flex-direction: column;          /* 5 at top, 0 at bottom */
       justify-content: space-between;
-      height: 100px;
-      font-size: 0.58rem;
+      height: 120px;
+      font-size: 0.6rem;
       color: #a0a4b4;
       line-height: 1.1;
       margin-right: 2px;
@@ -119,7 +162,7 @@
       writing-mode: bt-lr;
       -webkit-appearance: slider-vertical;
       width: 8px;
-      height: 100px;
+      height: 120px;
       accent-color: #45e0ff;
     }
 
@@ -131,13 +174,13 @@
     }
 
     .slider-btn {
-      width: 26px;
-      height: 26px;
-      border-radius: 8px;
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
       border: 1px solid rgba(132, 189, 255, 0.4);
       background: radial-gradient(circle at top, #242c3b 0%, #151925 70%);
       color: #f4f7ff;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       line-height: 1;
       cursor: pointer;
       display: flex;
@@ -155,104 +198,67 @@
 
     .value-label {
       margin-top: 4px;
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       color: #c0c4d4;
     }
 
     /* RIGHT PANEL */
 
-    /* RIGHT PANEL: slightly more compact so it fits in the viewport */
-.panel {
-  background: radial-gradient(
-    circle at top,
-    #181b24 0%,
-    #070910 55%,
-    #05060a 100%
-  );
-  border-radius: 14px;
-
-  /* tighten padding a bit */
-  padding: 10px 14px 8px;
-
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.04),
-    0 16px 30px rgba(0, 0, 0, 0.9);
-
-  display: flex;
-  flex-direction: column;
-
-  /* slightly less vertical gap between sections */
-  gap: 8px;
-
-  /* shrink all panel text just a touch */
-  font-size: 0.9rem;
-
-  /* let the whole panel use (almost) the full viewport height,
-     but keep a tiny margin at top/bottom */
-  max-height: calc(100vh - 8px);
-
-  /* no internal scrolling – the content itself is what we shrank */
-  overflow: hidden;
-}
-
-/* header text slightly smaller to save some height */
-.panel-header h1 {
-  font-size: 1.3rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.panel-header span {
-  font-size: 0.76rem;
-  color: #9ea3b5;
-}
-
-/* section titles a bit smaller + no extra bottom space */
-.panel-section-title {
-  font-size: 0.8rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #8fb5ff;
-  margin-bottom: 0;
-}
-
-/* make the equation block more compact vertically */
-.panel pre {
-  font-size: 0.9rem;
-  padding: 6px 8px;
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-/* tighten the “Current Parameters” single-line readout */
-.state-line {
-  font-size: 0.86rem;
-}
-
-/* AI-style paragraph just a hair smaller */
-.ai-analysis {
-  font-size: 0.86rem;
-}
-
-    /* put “STATE VECTOR” & x=x*(t) on one line */
-
-    .state-header {
+    .panel {
+      background: radial-gradient(
+        circle at top,
+        #181b24 0%,
+        #070910 55%,
+        #05060a 100%
+      );
+      border-radius: 14px;
+      padding: 14px 16px 12px;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 16px 30px rgba(0, 0, 0, 0.9);
       display: flex;
-      align-items: baseline;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.95rem;
+      max-height: calc(100vh - 20px);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
       justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .panel-header h1 {
+      font-size: 1.4rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .panel-header span {
+      font-size: 0.78rem;
+      color: #9ea3b5;
+    }
+
+    .panel-section-title {
+      font-size: 0.86rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #8fb5ff;
+      margin-bottom: 2px;
     }
 
     .state-label-line {
-      font-size: 0.78rem;
+      font-size: 0.84rem;
       color: #c3c7da;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
     }
 
     .state-label-line span {
       color: #8b90a8;
-      font-size: 0.74rem;
+      font-size: 0.78rem;
       margin-left: 6px;
     }
 
@@ -261,59 +267,55 @@
     .state-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 5px;
-      margin-bottom: 2px;
+      gap: 6px;
+      margin-bottom: 4px;
     }
 
     .state-pill {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.68rem;
-      border-radius: 10px;
-      padding: 4px 7px;
+      font-size: 0.72rem;
+      border-radius: 12px;
+      padding: 5px 8px;
       background: linear-gradient(130deg, #1d2536, #141722);
       border: 1px solid rgba(167, 196, 255, 0.32);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 3px;
+      gap: 4px;
       white-space: nowrap;
     }
 
     .state-pill .label {
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       color: #aab2d3;
-      font-size: 0.66rem;
+      font-size: 0.72rem;
     }
 
     .state-pill .value {
       color: #e7f4ff;
       font-weight: 600;
-      font-size: 0.74rem;
+      font-size: 0.8rem;
     }
 
     /* EQUATION BLOCK */
 
     pre {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.86rem;
+      font-size: 0.96rem;
       background: rgba(0, 0, 0, 0.35);
-      padding: 6px 10px;
-      border-radius: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
       overflow: auto;
-      line-height: 1.3;
+      line-height: 1.4;
       border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .panel-section {
-      margin-bottom: 2px;
     }
 
     /* PARAMETER LINE */
 
     .state-line {
       font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.86rem;
+      font-size: 0.9rem;
       white-space: pre-wrap;
       word-break: break-word;
     }
@@ -322,118 +324,50 @@
 
     .metrics-row {
       display: flex;
-      flex-wrap: nowrap;
-      gap: 6px;
-      margin-top: 4px;
-      font-size: 0.78rem;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
     }
 
     .pill {
+      font-size: 0.9rem;
       border-radius: 999px;
-      padding: 4px 9px;
+      padding: 6px 12px;
       background: linear-gradient(120deg, #1f2a3f, #151a26);
       border: 1px solid rgba(170, 202, 255, 0.32);
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      white-space: nowrap;
     }
 
     .pill span.label {
       color: #9da5c4;
       text-transform: uppercase;
-      letter-spacing: 0.07em;
-      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      font-size: 0.76rem;
     }
 
     .pill span.value {
       color: #e6f5ff;
       font-weight: 600;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
     }
 
     /* AI ANALYSIS TEXT */
 
     .ai-analysis {
-      margin-top: 2px;
-      font-size: 0.86rem;
+      margin-top: 4px;
+      font-size: 0.9rem;
       color: #d0d4ea;
-      max-height: 110px;
-      overflow-y: auto;
-    }
-
-    /* FIELD HISTORY */
-
-    .history-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-      margin-bottom: 2px;
-    }
-
-    .history-window {
-      font-size: 0.76rem;
-      color: #c0c4d4;
-      white-space: nowrap;
-    }
-
-    .history-window select {
-      background: #11131c;
-      border-radius: 999px;
-      border: 1px solid rgba(170, 202, 255, 0.5);
-      color: #e6f2ff;
-      padding: 2px 8px;
-      font-size: 0.74rem;
-    }
-
-    .history-filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px 8px;
-      margin-bottom: 4px;
-      font-size: 0.72rem;
-    }
-
-    .history-filters label {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      white-space: nowrap;
-    }
-
-    .history-filters input[type="checkbox"] {
-      accent-color: #45e0ff;
-    }
-
-    #historyCanvas {
-      width: 100%;
-      height: 160px;
-      border-radius: 8px;
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     /* FOOTER */
 
     .footer-note {
       margin-top: auto;
-      font-size: 0.76rem;
+      font-size: 0.78rem;
       color: #727894;
       text-align: right;
-      padding-top: 4px;
-    }
-
-    @media (max-width: 650px) {
-      .panel {
-        max-height: none;
-      }
-      .panel-header h1 {
-        font-size: 1.2rem;
-      }
-      #historyCanvas {
-        height: 140px;
-      }
     }
   </style>
 </head>
@@ -445,37 +379,31 @@
     <!-- RIGHT: Equation / Parameters Panel -->
     <div class="panel">
       <div class="panel-header">
-        <h1>STATEBOARD</h1>
+        <h1>StateBoard</h1>
         <span id="timestamp">Last change: —</span>
       </div>
 
-      <div class="panel-section">
-        <div class="state-header">
-          <div class="panel-section-title">Unified Consciousness Field Board</div>
-        </div>
-      </div>
-
-      <div class="panel-section">
-        <div class="state-header">
-          <div class="panel-section-title">State Vector</div>
-          <div class="state-label-line">
-            x = x*(t) <span>(current configuration)</span>
-          </div>
+      <div>
+        <div class="panel-section-title">State Vector</div>
+        <div class="state-label-line">
+          x = x*(t) <span>(current configuration)</span>
         </div>
         <div id="stateGrid" class="state-grid"></div>
       </div>
 
-      <div class="panel-section">
+      <div>
         <div class="panel-section-title">
           Unified Consciousness Field (working form)
         </div>
-        <pre>i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
-            + ( λ / |z|² ) ψ(t, z)
-            + μ ψ*(t, 1/z)
-∇<sub>z</sub> = ∂/∂z + A<sub>z</sub>(z, z̄)</pre>
+        <pre>
+i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
+                + ( λ / |z|² ) ψ(t, z)
+                + μ ψ*(t, 1/z)
+∇<sub>z</sub> = ∂/∂z + A<sub>z</sub>(z, z̄)
+        </pre>
       </div>
 
-      <div class="panel-section">
+      <div>
         <div class="panel-section-title">Current Parameters from Board</div>
         <div id="parameters" class="state-line"></div>
         <div class="metrics-row">
@@ -502,32 +430,12 @@
         </div>
       </div>
 
-      <div class="panel-section">
-        <div class="panel-section-title">Field Analysis (AI-style)</div>
+      <div>
+        <div class="panel-section-title">Field Analysis</div>
         <div id="ai-analysis" class="state-line ai-analysis">
           Adjust the board to get a live reading of how coherent, intense, and
           reconfiguring your current field is.
         </div>
-      </div>
-
-      <div class="panel-section">
-        <div class="history-header-row">
-          <div class="panel-section-title">Field History</div>
-          <div class="history-window">
-            Window:
-            <select id="windowSelect">
-              <option value="10m" selected>10 min</option>
-              <option value="1h">1 hour</option>
-              <option value="6h">6 hours</option>
-              <option value="1d">Day</option>
-              <option value="1w">Week</option>
-              <option value="1M">Month</option>
-              <option value="1Y">Year</option>
-            </select>
-          </div>
-        </div>
-        <div id="historyFilters" class="history-filters"></div>
-        <canvas id="historyCanvas"></canvas>
       </div>
 
       <div class="footer-note">
@@ -562,34 +470,8 @@
     let stateHistory = [];
     let lastTimestampMs = null;
 
-    let boardEl,
-      stateGridEl,
-      paramsEl,
-      coherenceEl,
-      tensionEl,
-      dValEl,
-      lambdaValEl,
-      muValEl,
-      timestampEl,
-      aiAnalysisEl,
-      historyCanvas,
-      historyCtx,
-      windowSelectEl,
-      historyFiltersEl;
-
-    // window in ms
-    const WINDOW_MS = {
-      "10m": 10 * 60 * 1000,
-      "1h": 60 * 60 * 1000,
-      "6h": 6 * 60 * 60 * 1000,
-      "1d": 24 * 60 * 60 * 1000,
-      "1w": 7 * 24 * 60 * 60 * 1000,
-      "1M": 30 * 24 * 60 * 60 * 1000,
-      "1Y": 365 * 24 * 60 * 60 * 1000
-    };
-
-    let activeWindowKey = "10m";
-    const activeDimensions = new Set(dimensions.map(d => d.id)); // default all on
+    let boardEl, stateGridEl, paramsEl, coherenceEl, tensionEl,
+      dValEl, lambdaValEl, muValEl, timestampEl, aiAnalysisEl;
 
     document.addEventListener("DOMContentLoaded", () => {
       boardEl = document.getElementById("board");
@@ -602,17 +484,11 @@
       muValEl = document.getElementById("muVal");
       timestampEl = document.getElementById("timestamp");
       aiAnalysisEl = document.getElementById("ai-analysis");
-      historyCanvas = document.getElementById("historyCanvas");
-      historyCtx = historyCanvas.getContext("2d");
-      windowSelectEl = document.getElementById("windowSelect");
-      historyFiltersEl = document.getElementById("historyFilters");
 
       buildSliderCards();
       buildStatePills();
-      buildHistoryFilters();
       loadFromStorageOrDefaults();
       attachListeners();
-      renderHistory(); // initial
     });
 
     // -------------------------------------------------------------------------
@@ -635,6 +511,7 @@
 
         const ticks = document.createElement("div");
         ticks.className = "ticks";
+        // 5 at top, 0 at bottom
         for (let i = 5; i >= 0; i--) {
           const s = document.createElement("span");
           s.textContent = i.toString();
@@ -705,27 +582,6 @@
       });
     }
 
-    function buildHistoryFilters() {
-      if (!historyFiltersEl) return;
-
-      historyFiltersEl.innerHTML = "";
-      dimensions.forEach((dim) => {
-        const label = document.createElement("label");
-        const cb = document.createElement("input");
-        cb.type = "checkbox";
-        cb.checked = true;
-        cb.value = dim.id;
-        cb.addEventListener("change", () => {
-          if (cb.checked) activeDimensions.add(dim.id);
-          else activeDimensions.delete(dim.id);
-          renderHistory();
-        });
-        label.appendChild(cb);
-        label.appendChild(document.createTextNode(dim.label));
-        historyFiltersEl.appendChild(label);
-      });
-    }
-
     // -------------------------------------------------------------------------
     //  STORAGE
     // -------------------------------------------------------------------------
@@ -771,7 +627,7 @@
 
     function saveToStorage(state, timestampMs) {
       stateHistory.push({ t: timestampMs, state });
-      if (stateHistory.length > 600) {
+      if (stateHistory.length > 500) {
         stateHistory.shift();
       }
 
@@ -795,38 +651,23 @@
         slider.addEventListener("input", () => handleSliderChange());
       });
 
-      if (boardEl) {
-        const btns = boardEl.querySelectorAll(".slider-btn");
-        btns.forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const id = btn.dataset.id;
-            if (!id) return;
-            const slider = document.getElementById(id);
-            if (!slider) return;
-            let value = Number(slider.value);
-            if (btn.classList.contains("plus")) value += 1;
-            if (btn.classList.contains("minus")) value -= 1;
-            if (value < 0) value = 0;
-            if (value > 5) value = 5;
-            slider.value = String(value);
-            handleSliderChange();
-          });
+      if (!boardEl) return;
+      const btns = boardEl.querySelectorAll(".slider-btn");
+      btns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          if (!id) return;
+          const slider = document.getElementById(id);
+          if (!slider) return;
+          let value = Number(slider.value);
+          if (btn.classList.contains("plus")) value += 1;
+          if (btn.classList.contains("minus")) value -= 1;
+          if (value < 0) value = 0;
+          if (value > 5) value = 5;
+          slider.value = String(value);
+          handleSliderChange();
         });
-      }
-
-      if (windowSelectEl) {
-        windowSelectEl.addEventListener("change", () => {
-          activeWindowKey = windowSelectEl.value;
-          renderHistory();
-        });
-      }
-
-      // keep canvas sharp on resize
-      window.addEventListener("resize", () => {
-        resizeCanvas();
-        renderHistory();
       });
-      resizeCanvas();
     }
 
     function handleSliderChange() {
@@ -858,6 +699,42 @@
           slider.value = String(v);
         }
       });
+    }
+
+    // --- smoothing over recent history --------------------------------------
+
+    function getSmoothedState(currentState) {
+      // If no history, just use current
+      if (!stateHistory.length) return currentState;
+
+      const now = stateHistory[stateHistory.length - 1].t;
+      const windowMs = 10 * 60 * 1000; // last 10 minutes
+      const recent = stateHistory.filter(p => now - p.t <= windowMs);
+
+      let samples = recent;
+      if (!samples.length) {
+        // fallback: last 10 samples if window is empty
+        samples = stateHistory.slice(-10);
+      }
+      if (!samples.length) return currentState;
+
+      const acc = {};
+      dimensions.forEach(d => { acc[d.id] = 0; });
+
+      samples.forEach(p => {
+        const s = p.state || {};
+        dimensions.forEach(d => {
+          const v = (typeof s[d.id] === "number") ? s[d.id] : currentState[d.id];
+          acc[d.id] += v;
+        });
+      });
+
+      const smoothed = {};
+      dimensions.forEach(d => {
+        smoothed[d.id] = acc[d.id] / samples.length;
+      });
+
+      return smoothed;
     }
 
     const norm = (v) => v / 5;
@@ -928,7 +805,7 @@
         0.15 * (lambda / 1.5) -
         0.15 * ncl -
         0.1 * (D / 1.6) +
-        0.05;
+        0.05; // baseline offset
 
       coherence = Math.max(0, Math.min(1, coherence));
       const coherencePercent = Math.round(coherence * 100);
@@ -951,16 +828,24 @@
     // -------------------------------------------------------------------------
 
     function updateUI(state, timestampMs, { persist }) {
+      // Update labels/pills with raw, instantaneous slider positions
       dimensions.forEach((d) => {
         const v = state[d.id];
         const labelEl = document.getElementById(d.id + "-value");
         const pillEl = document.getElementById(d.id + "-pill");
-        if (labelEl) labelEl.textContent = String(v);
-        if (pillEl) pillEl.textContent = String(v);
+        if (labelEl) labelEl.textContent = String(Math.round(v));
+        if (pillEl) pillEl.textContent = String(Math.round(v));
       });
 
+      if (persist) {
+        saveToStorage(state, timestampMs);
+      }
+
+      // Use smoothed state (last ~10 minutes) for parameters + narrative
+      const smoothedState = getSmoothedState(state);
+
       const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } =
-        computeParameters(state);
+        computeParameters(smoothedState);
 
       const Df = D.toFixed(3);
       const lf = lambda.toFixed(3);
@@ -990,19 +875,7 @@
           });
       }
 
-      if (persist) {
-        saveToStorage(state, timestampMs);
-      }
-
-      updateAIAnalysis(state, {
-        D,
-        lambda,
-        mu,
-        coherencePercent,
-        tensionScale,
-        chaosLoad
-      });
-      renderHistory();
+      updateAIAnalysis(smoothedState, { D, lambda, mu, coherencePercent, tensionScale, chaosLoad });
     }
 
     // -------------------------------------------------------------------------
@@ -1081,95 +954,6 @@
       if (n < 0) return 0;
       if (n > 1) return 1;
       return n;
-    }
-
-    // -------------------------------------------------------------------------
-    //  HISTORY GRAPH
-    // -------------------------------------------------------------------------
-
-    function resizeCanvas() {
-      if (!historyCanvas) return;
-      const rect = historyCanvas.getBoundingClientRect();
-      historyCanvas.width = rect.width * window.devicePixelRatio;
-      historyCanvas.height = rect.height * window.devicePixelRatio;
-      historyCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
-    }
-
-    function renderHistory() {
-      if (!historyCanvas || !historyCtx) return;
-      const width = historyCanvas.clientWidth;
-      const height = historyCanvas.clientHeight;
-      if (width === 0 || height === 0) return;
-
-      historyCtx.clearRect(0, 0, width, height);
-
-      if (!stateHistory.length) return;
-
-      const now = Date.now();
-      const windowMs = WINDOW_MS[activeWindowKey] || WINDOW_MS["10m"];
-      const startTime = now - windowMs;
-
-      const points = stateHistory.filter(p => p.t >= startTime);
-      if (points.length < 2) return;
-
-      const tMin = points[0].t;
-      const tMax = points[points.length - 1].t;
-      const xSpan = (tMax - tMin) || 1;
-
-      const leftPad = 24;
-      const rightPad = 6;
-      const topPad = 6;
-      const bottomPad = 16;
-
-      const plotW = width - leftPad - rightPad;
-      const plotH = height - topPad - bottomPad;
-
-      // grid baseline
-      historyCtx.strokeStyle = "rgba(255,255,255,0.12)";
-      historyCtx.lineWidth = 1;
-      historyCtx.beginPath();
-      for (let v = 0; v <= 5; v++) {
-        const y = topPad + plotH * (1 - v / 5);
-        historyCtx.moveTo(leftPad, y);
-        historyCtx.lineTo(leftPad + plotW, y);
-      }
-      historyCtx.stroke();
-
-      const colors = [
-        "#4dd0e1",
-        "#ffb74d",
-        "#ce93d8",
-        "#81c784",
-        "#f06292",
-        "#64b5f6",
-        "#ba68c8",
-        "#ff8a65",
-        "#4db6ac",
-        "#fff176",
-        "#e57373",
-        "#90a4ae"
-      ];
-
-      let colorIndex = 0;
-
-      dimensions.forEach((dim) => {
-        if (!activeDimensions.has(dim.id)) return;
-
-        const col = colors[colorIndex % colors.length];
-        colorIndex++;
-
-        historyCtx.beginPath();
-        points.forEach((p, idx) => {
-          const v = p.state[dim.id] ?? 0;
-          const x = leftPad + ((p.t - tMin) / xSpan) * plotW;
-          const y = topPad + plotH * (1 - v / 5);
-          if (idx === 0) historyCtx.moveTo(x, y);
-          else historyCtx.lineTo(x, y);
-        });
-        historyCtx.strokeStyle = col;
-        historyCtx.lineWidth = 1.5;
-        historyCtx.stroke();
-      });
     }
   </script>
 </body>
