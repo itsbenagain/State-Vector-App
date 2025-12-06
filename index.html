@@ -55,6 +55,46 @@
       }
     }
 
+    /* Extra mobile tuning: bigger buttons + text */
+    @media (max-width: 650px) {
+      .app {
+        transform: scale(1);
+        max-width: 100%;
+      }
+
+      .panel {
+        font-size: 1.05rem;
+      }
+
+      .panel-header h1 {
+        font-size: 1.4rem;
+      }
+
+      .state-line,
+      .ai-analysis {
+        font-size: 0.98rem;
+      }
+
+      .slider-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+      }
+
+      .card h3 {
+        font-size: 0.8rem;
+      }
+
+      .state-pill {
+        padding: 6px 9px;
+        font-size: 0.78rem;
+      }
+
+      .state-pill .value {
+        font-size: 0.86rem;
+      }
+    }
+
     /* LEFT BOARD */
 
     .board {
@@ -727,7 +767,7 @@ i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
         0.15 * (lambda / 1.5) -
         0.15 * ncl -
         0.1 * (D / 1.6) +
-        0.05; // small baseline offset
+        0.05; // baseline offset
 
       coherence = Math.max(0, Math.min(1, coherence));
       const coherencePercent = Math.round(coherence * 100);
