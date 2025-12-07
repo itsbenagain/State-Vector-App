@@ -1119,36 +1119,109 @@
         chaosText = "Chaos is running hot — the system is learning through intensity, but relief will come from simplifying your commitment stack, not from doing more.";
       }
 
-      // --- D, λ, μ description in life terms ---
+                // --- D, λ, μ description in life terms (richer ranges + combo rules) ---
+
+      // Bucket helpers so we can talk about combinations in a structured way
+      const dBucket = D < 0.2 ? 0 : D < 0.6 ? 1 : D < 1.0 ? 2 : 3;
+      const lambdaBucket = lambda < 0.3 ? 0 : lambda < 0.7 ? 1 : lambda < 1.2 ? 2 : 3;
+      const muBucket = mu < 0.3 ? 0 : mu < 0.7 ? 1 : mu < 1.1 ? 2 : 3;
+
       let Dtext;
-      if (D < 0.4) {
-        Dtext = "Stability is high: your changes are deliberate and propagate slowly, which is good for consolidation.";
-      } else if (D < 0.9) {
-        Dtext = "You’re in a mixed stability/exploration mode — you can test ideas without losing basic orientation.";
+      if (dBucket === 0) {
+        Dtext =
+          "Stability is very high: changes tend to be conservative and slow-moving, which favors consolidation and follow-through.";
+      } else if (dBucket === 1) {
+        Dtext =
+          "Stability is solid with some flex — you can adjust course without feeling like the foundation is constantly moving.";
+      } else if (dBucket === 2) {
+        Dtext =
+          "Stability and exploration are balanced: you can experiment meaningfully while still recognizing a familiar baseline.";
       } else {
-        Dtext = "Exploration is dominant — this is a ‘try a lot of moves and see which ones feel alive’ window.";
+        Dtext =
+          "Exploration is strong — shifts can propagate quickly, so this phase is good for trying bolder moves and seeing what actually sticks.";
       }
 
       let lambdaText;
-      if (lambda > 1.1) {
-        lambdaText = "The pull of your long-term trajectory (λ) is strong; you have a clear sense of what actually matters over time.";
-      } else if (lambda > 0.6) {
-        lambdaText = "λ is moderate — you know the general direction, even if the exact form of it is still shifting.";
+      if (lambdaBucket === 0) {
+        lambdaText =
+          "λ is very gentle: long-term direction is loose, which can feel spacious but may also blur what counts as a real priority.";
+      } else if (lambdaBucket === 1) {
+        lambdaText =
+          "λ is present but soft — there’s a general sense of where you’re heading, without everything being forced into a single storyline.";
+      } else if (lambdaBucket === 2) {
+        lambdaText =
+          "λ is strong: long-term goals are exerting a clear pull, and short-term choices are more likely to be weighed against that arc.";
       } else {
-        lambdaText = "λ is gentle — this is a flexible moment where redefining what ‘the main arc’ is could be natural.";
+        lambdaText =
+          "λ is very strong — the main arc is highly salient, and it’s natural to measure opportunities by how well they align with that trajectory.";
       }
 
       let muText;
-      if (mu > 1.0) {
+      if (muBucket === 0) {
         muText =
-          "μ is high: big reframe energy — you’re likely to reinterpret events, connect unlikely dots, and update your narrative.";
-      } else if (mu > 0.5) {
+          "μ is low: you’re reading situations mostly at face value, working with what’s directly in front of you rather than reinterpreting it.";
+      } else if (muBucket === 1) {
         muText =
-          "μ is moderate: you’re open to new meanings and perspectives without losing contact with the literal layer.";
+          "μ is modest: you have room for reinterpretation and new angles, but the existing story still feels like the main reference point.";
+      } else if (muBucket === 2) {
+        muText =
+          "μ is elevated: there’s active reframe energy, making it easier to connect patterns, change meaning, and see familiar things in a new light.";
       } else {
         muText =
-          "μ is low: you’re reading life more literally right now, working with what’s in front of you rather than remixing the story.";
+          "μ is high: deep narrative edits are on the table — expectations, roles, and past events are more likely to be recontextualized in this phase.";
       }
+
+      // --- Combination-level read (D, λ, μ together) ---
+      let comboText = "";
+
+      // Very stable + strong λ + low μ → steady, literal long-arc execution
+      if (dBucket <= 1 && lambdaBucket >= 2 && muBucket <= 1) {
+        comboText =
+          "Taken together, these parameters describe a steady long-arc execution mode: the direction is clear, the ground is firm, and you’re mostly working with situations as they are.";
+      }
+      // Stable-ish + strong λ + high μ → reinterpretation inside a committed arc
+      else if (dBucket <= 2 && lambdaBucket >= 2 && muBucket >= 2) {
+        comboText =
+          "Here, a committed long-term arc is meeting strong reframe energy: the path matters to you, but how you understand it is actively being updated.";
+      }
+      // High exploration + soft λ + high μ → exploratory / narrative remix
+      else if (dBucket >= 2 && lambdaBucket <= 1 && muBucket >= 2) {
+        comboText =
+          "This configuration leans toward open-ended exploration: the destination is flexible, and a lot of the work is happening at the level of meaning and narrative.";
+      }
+      // High exploration + strong λ + mid μ → ambitious, experimental push
+      else if (dBucket >= 2 && lambdaBucket >= 2 && muBucket >= 1 && muBucket <= 2) {
+        comboText =
+          "Here the system looks ambitious and experimental at the same time — you care about where you’re going, and you’re willing to adjust methods to get there.";
+      }
+      // Low stability + low λ + low μ → low-structure, literal drift
+      else if (dBucket >= 2 && lambdaBucket === 0 && muBucket === 0) {
+        comboText =
+          "There’s very little structural pull from the future and not much reinterpretation: this can function as a drift window, or as a pause before you decide what actually deserves focus.";
+      }
+      // Stable ground + soft λ + elevated μ → reorganizing the story without forcing action
+      else if (dBucket <= 1 && lambdaBucket <= 1 && muBucket >= 1) {
+        comboText =
+          "The field reads as relatively stable while the story about it is in motion — it’s a natural moment to reconsider how you frame things without needing to overhaul everything at once.";
+      }
+      // Balanced middle everything → workable mix
+      else if (dBucket === 1 || dBucket === 2) {
+        comboText =
+          "Overall, D, λ, and μ sit in a workable middle band: stability, direction, and reinterpretation are present without any single one overwhelming the others.";
+      } else {
+        comboText =
+          "In combination, these parameters describe a mixed phase: some forces are pulling for continuity, others for change, and the system hasn’t fully chosen sides yet.";
+      }
+
+      // and later in the text output, just append comboText:
+      aiAnalysisEl.textContent =
+        `Mode: ${modeName}. ${modeSummary} ` +
+        `${coherenceText} ` +
+        `${chaosText} ` +
+        `${Dtext} ` +
+        `${lambdaText} ` +
+        `${muText} ` +
+        `${comboText}`;
 
       aiAnalysisEl.textContent =
         `Mode: ${modeName}. ${modeSummary} ` +
