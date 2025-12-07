@@ -534,9 +534,13 @@
     let stateHistory = [];
     let lastTimestampMs = null;
 
-    // NEW: smoothed state for behavioral smoothing
+    // Smoothed state for behavioral smoothing
     let smoothedState = null;
     let lastSmoothedTime = null;
+
+    // For derivative / change detection in AI analysis
+    let lastAnalysisState = null;
+    let lastAnalysisParams = null;
 
     let boardEl,
       stateGridEl,
@@ -587,7 +591,11 @@
       buildHistoryFilters();
       loadFromStorageOrDefaults();
       attachListeners();
+      resizeCanvas();
       renderHistory();
+
+      // Real-time redraw so history line doesn't vanish when you're not touching sliders
+      setInterval(renderHistory, 1000);
     });
 
     // -------------------------------------------------------------------------
@@ -800,7 +808,6 @@
         resizeCanvas();
         renderHistory();
       });
-      resizeCanvas();
     }
 
     function handleSliderChange() {
@@ -918,7 +925,7 @@
     }
 
     // -------------------------------------------------------------------------
-    //  UI UPDATE  (NOW SMOOTHED)
+    //  UI UPDATE (SMOOTHED)
     // -------------------------------------------------------------------------
 
     function updateUI(state, timestampMs, { persist }) {
@@ -931,9 +938,8 @@
         if (pillEl) pillEl.textContent = String(v);
       });
 
-      // --- NEW: temporal smoothing of underlying state for metrics / AI text ---
+      // temporal smoothing of underlying state for metrics / AI text
       if (!smoothedState) {
-        // first time, just adopt the current state
         smoothedState = { ...state };
         lastSmoothedTime = timestampMs;
       } else {
@@ -941,12 +947,10 @@
         const prevTime = lastSmoothedTime ?? now;
         const dtSec = Math.max(0, (now - prevTime) / 1000);
 
-        // time constant ~20s, capped so gaps don't explode
         const tau = 20;
         const cappedDt = Math.min(dtSec, 60);
         let alpha = 1 - Math.exp(-cappedDt / tau);
 
-        // fallback if dt is too tiny / zero
         if (!Number.isFinite(alpha) || alpha <= 0) alpha = 0.25;
 
         dimensions.forEach((d) => {
@@ -1013,7 +1017,7 @@
     }
 
     // -------------------------------------------------------------------------
-    //  "AI" ANALYSIS (LOCAL, SELF-HELP STYLE)
+    //  "AI" ANALYSIS (BASINS / MODES, LIFE-FITTED)
     // -------------------------------------------------------------------------
 
     function updateAIAnalysis(state, params) {
@@ -1022,60 +1026,133 @@
       const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } = params;
       const chaosLevel = normalizeChaos(chaosLoad);
 
-      let coherenceText;
-      if (coherencePercent >= 80) {
-        coherenceText = "very coherent — your priorities are lining up and the field feels locked in.";
-      } else if (coherencePercent >= 65) {
-        coherenceText = "solid and focused — there's clear direction with enough flexibility to breathe.";
-      } else if (coherencePercent >= 45) {
-        coherenceText = "in an integration phase — multiple threads are active and learning how to sit together.";
+      // --- compute a simple "change magnitude" from last analysis (derivative-ish) ---
+      let changeMagnitude = 0;
+      if (lastAnalysisState) {
+        let sum = 0;
+        let count = 0;
+        dimensions.forEach((d) => {
+          const id = d.id;
+          const prev = lastAnalysisState[id] ?? state[id] ?? 0;
+          const cur = state[id] ?? 0;
+          sum += Math.abs(cur - prev);
+          count += 1;
+        });
+        const avg = count > 0 ? sum / count : 0;
+        // normalize: 0..5 -> 0..1
+        changeMagnitude = Math.max(0, Math.min(1, avg / 5));
       } else {
-        coherenceText = "reconfiguring — you're in a remix zone where the system is trying new combinations.";
+        changeMagnitude = 0;
       }
 
+      // store for next step
+      lastAnalysisState = { ...state };
+      lastAnalysisParams = { ...params };
+
+      // --- pick a "mode" (basin) that feels like real life, not quantum hype ---
+      let modeName = "Unlabeled State";
+      let modeSummary = "";
+
+      const highCoherence = coherencePercent >= 75;
+      const midCoherence = coherencePercent >= 55 && coherencePercent < 75;
+      const lowCoherence = coherencePercent < 55;
+      const lowChaos = chaosLevel <= 0.3;
+      const midChaos = chaosLevel > 0.3 && chaosLevel <= 0.7;
+      const highChaos = chaosLevel > 0.7;
+
+      const lowChange = changeMagnitude <= 0.2;
+      const midChange = changeMagnitude > 0.2 && changeMagnitude <= 0.5;
+      const highChange = changeMagnitude > 0.5;
+
+      const stableD = D < 0.5;
+      const exploratoryD = D >= 0.5;
+
+      if (highCoherence && lowChaos && lowChange && stableD) {
+        modeName = "Deep Groove";
+        modeSummary = "You’re in a groove: life is lined up, and you’re mostly executing rather than reinventing.";
+      } else if (highCoherence && lowChaos && (midChange || exploratoryD)) {
+        modeName = "Stable Cruise";
+        modeSummary = "You’re on a solid arc with gentle adjustments — the system is coherent and responsive.";
+      } else if (midCoherence && lowChaos && midChange) {
+        modeName = "Adaptive Growth";
+        modeSummary = "You’re growing into a clearer shape: multiple areas are shifting, but they still support each other.";
+      } else if (midCoherence && midChaos && highChange && exploratoryD) {
+        modeName = "Remix / Reconfiguration";
+        modeSummary = "You’re actively reshuffling: trying new combinations, testing directions, and letting the next arc emerge.";
+      } else if (lowCoherence && highChaos) {
+        modeName = "Overloaded Field";
+        modeSummary = "Too many demands are stacked at once — simplifying or dropping a couple obligations would immediately help.";
+      } else if (lowCoherence && lowChaos && !exploratoryD) {
+        modeName = "Low-Drive Drift";
+        modeSummary = "Things are relatively calm but under-directed; this is a rest window or a chance to consciously pick a new target.";
+      } else if (lowCoherence && midChaos && midChange) {
+        modeName = "Threshold Zone";
+        modeSummary = "You’re at a threshold: the system isn’t settled yet, but it’s flexible enough to choose a better configuration.";
+      } else {
+        modeName = "Mixed Mode";
+        modeSummary = "You’re in a blended state with a few competing pulls; nothing is broken, but it’s worth noticing which thread you actually want to amplify.";
+      }
+
+      // --- coherence description, less biased toward "remix" ---
+      let coherenceText;
+      if (coherencePercent >= 85) {
+        coherenceText = "Coherence is very high — most of your choices are pulling in the same direction.";
+      } else if (coherencePercent >= 70) {
+        coherenceText = "Coherence is strong — the main story of your life right now is clear, even if details are still moving.";
+      } else if (coherencePercent >= 55) {
+        coherenceText = "Coherence is moderate — several threads are active, and they mostly fit together but still need alignment.";
+      } else if (coherencePercent >= 40) {
+        coherenceText = "Coherence is partial — you’re experimenting with how different priorities stack, and not all of them agree yet.";
+      } else {
+        coherenceText = "Coherence is low — you’re in a searching phase where the system hasn’t chosen a clear configuration.";
+      }
+
+      // --- chaos description: about the field, not punishing slider use ---
       let chaosText;
       if (chaosLevel <= 0.15) {
-        chaosText = "Chaos load is very low; things are calm, maybe even a bit under-stimulated.";
+        chaosText = "Chaos load is very low; things are calm, possibly even under-stimulating if you crave momentum.";
       } else if (chaosLevel <= 0.4) {
-        chaosText = "Chaos load is in a healthy stimulation band — there’s movement without overload.";
+        chaosText = "Chaos load is in a healthy stimulation band — there’s movement without feeling flooded.";
       } else if (chaosLevel <= 0.7) {
-        chaosText = "Chaos is elevated — a lot is happening at once, so simplifying a couple sliders would help.";
+        chaosText = "Chaos is elevated — there are multiple moving parts; dialing down one or two obligations would immediately create space.";
       } else {
-        chaosText = "Chaos is running hot — the system is learning through intensity; reducing obligations would instantly free bandwidth.";
+        chaosText = "Chaos is running hot — the system is learning through intensity, but relief will come from simplifying your commitment stack, not from doing more.";
       }
 
+      // --- D, λ, μ description in life terms ---
       let Dtext;
       if (D < 0.4) {
-        Dtext = "Stability is high: your moves are deliberate and changes propagate slowly.";
+        Dtext = "Stability is high: your changes are deliberate and propagate slowly, which is good for consolidation.";
       } else if (D < 0.9) {
-        Dtext = "You're in a mixed stability/exploration mode — trying things without losing the plot.";
+        Dtext = "You’re in a mixed stability/exploration mode — you can test ideas without losing basic orientation.";
       } else {
-        Dtext = "Exploration is dominant — this is a ‘try lots of moves and see what sticks’ moment.";
+        Dtext = "Exploration is dominant — this is a ‘try a lot of moves and see which ones feel alive’ window.";
       }
 
       let lambdaText;
       if (lambda > 1.1) {
-        lambdaText = "The pull of your core trajectory (λ) is strong; you have a clear sense of what matters long-term.";
+        lambdaText = "The pull of your long-term trajectory (λ) is strong; you have a clear sense of what actually matters over time.";
       } else if (lambda > 0.6) {
-        lambdaText = "λ is moderate — you know the general direction, even if some details are still flexible.";
+        lambdaText = "λ is moderate — you know the general direction, even if the exact form of it is still shifting.";
       } else {
-        lambdaText = "λ is gentle — this is a good window for re-evaluating what ‘the main arc’ actually is.";
+        lambdaText = "λ is gentle — this is a flexible moment where redefining what ‘the main arc’ is could be natural.";
       }
 
       let muText;
       if (mu > 1.0) {
         muText =
-          "μ is high: big reframe energy — expect reinterpretations, perspective flips, and unexpected connections.";
+          "μ is high: big reframe energy — you’re likely to reinterpret events, connect unlikely dots, and update your narrative.";
       } else if (mu > 0.5) {
         muText =
-          "μ is moderate: you're open to new meanings without losing the basic story.";
+          "μ is moderate: you’re open to new meanings and perspectives without losing contact with the literal layer.";
       } else {
         muText =
-          "μ is low: you're reading life pretty literally right now, with minimal reinterpretation.";
+          "μ is low: you’re reading life more literally right now, working with what’s in front of you rather than remixing the story.";
       }
 
       aiAnalysisEl.textContent =
-        `Current read: ${coherenceText} ` +
+        `Mode: ${modeName}. ${modeSummary} ` +
+        `${coherenceText} ` +
         `${chaosText} ` +
         `${Dtext} ` +
         `${lambdaText} ` +
@@ -1091,7 +1168,7 @@
     }
 
     // -------------------------------------------------------------------------
-    //  HISTORY GRAPH (with smoothed curves)
+    //  HISTORY GRAPH (with smoothed curves and live tail)
     // -------------------------------------------------------------------------
 
     function resizeCanvas() {
@@ -1116,7 +1193,20 @@
       const windowMs = WINDOW_MS[activeWindowKey] || WINDOW_MS["10m"];
       const startTime = now - windowMs;
 
-      const points = stateHistory.filter(p => p.t >= startTime);
+      const basePoints = stateHistory.filter(p => p.t >= startTime);
+      if (basePoints.length < 1) return;
+
+      const lastBase = basePoints[basePoints.length - 1];
+
+      // Extend last known state to "now" so the line doesn't just stop in the past
+      let points = basePoints;
+      if (lastBase.t < now) {
+        points = basePoints.concat({
+          t: now,
+          state: lastBase.state
+        });
+      }
+
       if (points.length < 2) return;
 
       const tMin = points[0].t;
@@ -1165,7 +1255,7 @@
         const col = colors[colorIndex % colors.length];
         colorIndex++;
 
-        // simple EMA smoothing along time for this dimension
+        // EMA smoothing along time for this dimension
         let lastSmooth = null;
         const smoothAlpha = 0.4; // 0..1, higher = more responsive
 
