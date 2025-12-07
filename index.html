@@ -947,7 +947,7 @@
     const norm = (v) => v / 5;
     const expo = (x, p) => Math.pow(Math.min(Math.max(x, 0), 1), p);
 
-    function computeParameters(state) {
+   function computeParameters(state) {
   const {
     energy,
     focus,
@@ -1054,13 +1054,6 @@
 
   return { D, lambda, mu, coherencePercent, tensionScale, chaosLoad };
 }
-
-      // Map to ~5–95% band, centered at 50
-      const tensionHuman = 0.5 + 0.45 * tanhX;
-      const tensionScale = Math.round(Math.max(0, Math.min(1, tensionHuman)) * 100);
-
-      return { D, lambda, mu, coherencePercent, tensionScale, chaosLoad };
-    }
 
     // -------------------------------------------------------------------------
     //  UI UPDATE (SMOOTHED)
