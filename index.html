@@ -169,34 +169,61 @@
         #05060a 100%
       );
       border-radius: 14px;
-
       padding: 10px 14px 8px;
-
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04),
         0 16px 30px rgba(0, 0, 0, 0.9);
-
       display: flex;
       flex-direction: column;
-
       gap: 8px;
-
       font-size: 0.9rem;
-
       max-height: calc(100vh - 8px);
-
       overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
     }
 
     .panel-header h1 {
       font-size: 1.3rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+      margin: 0;
     }
 
-    .panel-header span {
+    .panel-header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-size: 0.76rem;
+      white-space: nowrap;
+    }
+
+    .panel-header-right span {
       color: #9ea3b5;
+    }
+
+    .header-btn {
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.7rem;
+      border: 1px solid rgba(170, 202, 255, 0.55);
+      background: linear-gradient(120deg, #1f2636, #151925);
+      color: #e6f2ff;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .header-btn:hover {
+      border-color: rgba(200, 225, 255, 0.9);
+    }
+
+    .header-btn:active {
+      transform: translateY(1px) scale(0.97);
     }
 
     .panel-section-title {
@@ -417,8 +444,14 @@
     <!-- RIGHT: Equation / Parameters Panel -->
     <div class="panel">
       <div class="panel-header">
-        <h1>STATEBOARD</h1>
-        <span id="timestamp">Last change: —</span>
+        <div class="panel-header-left">
+          <h1>STATEBOARD</h1>
+        </div>
+        <div class="panel-header-right">
+          <span id="timestamp">Last change: —</span>
+          <button type="button" id="clearChaosBtn" class="header-btn">Clear Chaos</button>
+          <button type="button" id="restartClockBtn" class="header-btn">Restart Clock</button>
+        </div>
       </div>
 
       <div class="panel-section">
@@ -488,6 +521,7 @@
           <div class="history-window">
             Window:
             <select id="windowSelect">
+              <option value="5m">5 min</option>
               <option value="10m" selected>10 min</option>
               <option value="1h">1 hour</option>
               <option value="6h">6 hours</option>
@@ -542,6 +576,9 @@
     let lastAnalysisState = null;
     let lastAnalysisParams = null;
 
+    // For human-range tension sensitivity
+    let tensionBaseline = null;
+
     let boardEl,
       stateGridEl,
       paramsEl,
@@ -555,9 +592,12 @@
       historyCanvas,
       historyCtx,
       windowSelectEl,
-      historyFiltersEl;
+      historyFiltersEl,
+      clearChaosBtn,
+      restartClockBtn;
 
     const WINDOW_MS = {
+      "5m": 5 * 60 * 1000,
       "10m": 10 * 60 * 1000,
       "1h": 60 * 60 * 1000,
       "6h": 6 * 60 * 60 * 1000,
@@ -585,6 +625,8 @@
       historyCtx = historyCanvas.getContext("2d");
       windowSelectEl = document.getElementById("windowSelect");
       historyFiltersEl = document.getElementById("historyFilters");
+      clearChaosBtn = document.getElementById("clearChaosBtn");
+      restartClockBtn = document.getElementById("restartClockBtn");
 
       buildSliderCards();
       buildStatePills();
@@ -594,15 +636,8 @@
       resizeCanvas();
       renderHistory();
 
-      // keep graph alive
+      // Real-time redraw so history line doesn't vanish when you're not touching sliders
       setInterval(renderHistory, 1000);
-
-      // heartbeat to let the AI / smoothing keep evolving toward the current sliders
-      setInterval(() => {
-        const state = getStateVector();
-        const now = Date.now();
-        updateUI(state, now, { persist: false, fromHeartbeat: true });
-      }, 800);
     });
 
     // -------------------------------------------------------------------------
@@ -751,11 +786,11 @@
       if (lastState) {
         applyStateToSliders(lastState);
         const ts = lastTimestampMs ?? Date.now();
-        updateUI(lastState, ts, { persist: false, fromHeartbeat: false });
+        updateUI(lastState, ts, { persist: false });
       } else {
         const state = getStateVector();
         const now = Date.now();
-        updateUI(state, now, { persist: true, fromHeartbeat: false });
+        updateUI(state, now, { persist: true });
       }
     }
 
@@ -811,6 +846,14 @@
         });
       }
 
+      if (clearChaosBtn) {
+        clearChaosBtn.addEventListener("click", handleClearChaos);
+      }
+
+      if (restartClockBtn) {
+        restartClockBtn.addEventListener("click", handleRestartClock);
+      }
+
       window.addEventListener("resize", () => {
         resizeCanvas();
         renderHistory();
@@ -820,7 +863,60 @@
     function handleSliderChange() {
       const state = getStateVector();
       const now = Date.now();
-      updateUI(state, now, { persist: true, fromHeartbeat: false });
+      updateUI(state, now, { persist: true });
+    }
+
+    // Clear recent noise (last ~30s), keep current state as consolidated point
+    function handleClearChaos() {
+      if (!stateHistory.length) return;
+      const now = Date.now();
+      const cutoff = now - 30 * 1000;
+
+      const kept = stateHistory.filter(p => p.t < cutoff);
+      const currentState = getStateVector();
+
+      kept.push({ t: now, state: currentState });
+      stateHistory = kept;
+
+      try {
+        localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
+        localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(currentState));
+        localStorage.setItem(STORAGE_LAST_TIME_KEY, String(now));
+      } catch {
+        // ignore
+      }
+
+      // Reset smoothing / derivative memory to avoid punishing exploration
+      smoothedState = { ...currentState };
+      lastSmoothedTime = now;
+      lastAnalysisState = null;
+      lastAnalysisParams = null;
+
+      updateUI(currentState, now, { persist: false });
+    }
+
+    // Restart time axis, keep current configuration
+    function handleRestartClock() {
+      const now = Date.now();
+      const currentState = getStateVector();
+
+      stateHistory = [{ t: now, state: currentState }];
+
+      try {
+        localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
+        localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(currentState));
+        localStorage.setItem(STORAGE_LAST_TIME_KEY, String(now));
+      } catch {
+        // ignore
+      }
+
+      smoothedState = { ...currentState };
+      lastSmoothedTime = now;
+      lastAnalysisState = null;
+      lastAnalysisParams = null;
+      tensionBaseline = null;
+
+      updateUI(currentState, now, { persist: false });
     }
 
     // -------------------------------------------------------------------------
@@ -920,22 +1016,38 @@
 
       const Dterm = 1 - D / 1.6;
 
-      let tension =
+      let tensionRaw =
         0.5 * (lambda / 1.5) +
         0.35 * (mu / 1.5) +
         0.15 * Dterm;
 
-      tension = Math.max(0, Math.min(1.3, tension));
-      const tensionScale = Math.round((tension / 1.3) * 100);
+      tensionRaw = Math.max(0, Math.min(1.3, tensionRaw));
+
+      // Human-range mapping for trajectory tension (baseline + tanh)
+      if (tensionBaseline === null) {
+        tensionBaseline = tensionRaw;
+      } else {
+        const baselineAlpha = 0.02; // slow drift
+        tensionBaseline = baselineAlpha * tensionRaw + (1 - baselineAlpha) * tensionBaseline;
+      }
+
+      const diff = tensionRaw - tensionBaseline;
+      const scale = 0.5; // how big a shift counts as "noticeable"
+      const x = diff / scale;
+      const tanhX = Math.tanh(x); // -1..1-ish
+
+      // Map to ~5–95% band, centered at 50
+      const tensionHuman = 0.5 + 0.45 * tanhX;
+      const tensionScale = Math.round(Math.max(0, Math.min(1, tensionHuman)) * 100);
 
       return { D, lambda, mu, coherencePercent, tensionScale, chaosLoad };
     }
 
     // -------------------------------------------------------------------------
-    //  UI UPDATE (SMOOTHED + HEARTBEAT)
+    //  UI UPDATE (SMOOTHED)
     // -------------------------------------------------------------------------
 
-    function updateUI(state, timestampMs, { persist, fromHeartbeat }) {
+    function updateUI(state, timestampMs, { persist }) {
       // raw labels/pills stay literal
       dimensions.forEach((d) => {
         const v = state[d.id];
@@ -954,8 +1066,7 @@
         const prevTime = lastSmoothedTime ?? now;
         const dtSec = Math.max(0, (now - prevTime) / 1000);
 
-        // faster response (was 20s)
-        const tau = 4; // seconds
+        const tau = 20;
         const cappedDt = Math.min(dtSec, 60);
         let alpha = 1 - Math.exp(-cappedDt / tau);
 
@@ -998,8 +1109,7 @@
       if (lambdaValEl) lambdaValEl.textContent = lf;
       if (muValEl) muValEl.textContent = muf;
 
-      // Only update "Last change" and history when this came from an actual touch
-      if (!fromHeartbeat && timestampEl) {
+      if (timestampEl) {
         const date = new Date(timestampMs);
         timestampEl.textContent =
           "Last change: " +
@@ -1010,7 +1120,7 @@
           });
       }
 
-      if (persist && !fromHeartbeat) {
+      if (persist) {
         saveToStorage(state, timestampMs);
       }
 
@@ -1102,7 +1212,7 @@
         modeSummary = "You’re in a blended state with a few competing pulls; nothing is broken, but it’s worth noticing which thread you actually want to amplify.";
       }
 
-      // --- coherence description, less biased toward "remix" ---
+      // --- coherence description ---
       let coherenceText;
       if (coherencePercent >= 85) {
         coherenceText = "Coherence is very high — most of your choices are pulling in the same direction.";
