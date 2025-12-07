@@ -594,8 +594,15 @@
       resizeCanvas();
       renderHistory();
 
-      // Real-time redraw so history line doesn't vanish when you're not touching sliders
+      // keep graph alive
       setInterval(renderHistory, 1000);
+
+      // heartbeat to let the AI / smoothing keep evolving toward the current sliders
+      setInterval(() => {
+        const state = getStateVector();
+        const now = Date.now();
+        updateUI(state, now, { persist: false, fromHeartbeat: true });
+      }, 800);
     });
 
     // -------------------------------------------------------------------------
@@ -744,11 +751,11 @@
       if (lastState) {
         applyStateToSliders(lastState);
         const ts = lastTimestampMs ?? Date.now();
-        updateUI(lastState, ts, { persist: false });
+        updateUI(lastState, ts, { persist: false, fromHeartbeat: false });
       } else {
         const state = getStateVector();
         const now = Date.now();
-        updateUI(state, now, { persist: true });
+        updateUI(state, now, { persist: true, fromHeartbeat: false });
       }
     }
 
@@ -813,7 +820,7 @@
     function handleSliderChange() {
       const state = getStateVector();
       const now = Date.now();
-      updateUI(state, now, { persist: true });
+      updateUI(state, now, { persist: true, fromHeartbeat: false });
     }
 
     // -------------------------------------------------------------------------
@@ -925,10 +932,10 @@
     }
 
     // -------------------------------------------------------------------------
-    //  UI UPDATE (SMOOTHED)
+    //  UI UPDATE (SMOOTHED + HEARTBEAT)
     // -------------------------------------------------------------------------
 
-    function updateUI(state, timestampMs, { persist }) {
+    function updateUI(state, timestampMs, { persist, fromHeartbeat }) {
       // raw labels/pills stay literal
       dimensions.forEach((d) => {
         const v = state[d.id];
@@ -947,7 +954,8 @@
         const prevTime = lastSmoothedTime ?? now;
         const dtSec = Math.max(0, (now - prevTime) / 1000);
 
-        const tau = 20;
+        // faster response (was 20s)
+        const tau = 4; // seconds
         const cappedDt = Math.min(dtSec, 60);
         let alpha = 1 - Math.exp(-cappedDt / tau);
 
@@ -990,7 +998,8 @@
       if (lambdaValEl) lambdaValEl.textContent = lf;
       if (muValEl) muValEl.textContent = muf;
 
-      if (timestampEl) {
+      // Only update "Last change" and history when this came from an actual touch
+      if (!fromHeartbeat && timestampEl) {
         const date = new Date(timestampMs);
         timestampEl.textContent =
           "Last change: " +
@@ -1001,7 +1010,7 @@
           });
       }
 
-      if (persist) {
+      if (persist && !fromHeartbeat) {
         saveToStorage(state, timestampMs);
       }
 
@@ -1119,7 +1128,7 @@
         chaosText = "Chaos is running hot — the system is learning through intensity, but relief will come from simplifying your commitment stack, not from doing more.";
       }
 
-                // --- D, λ, μ description in life terms (richer ranges + combo rules) ---
+      // --- D, λ, μ description in life terms (richer ranges + combo rules) ---
 
       // Bucket helpers so we can talk about combinations in a structured way
       const dBucket = D < 0.2 ? 0 : D < 0.6 ? 1 : D < 1.0 ? 2 : 3;
@@ -1213,7 +1222,6 @@
           "In combination, these parameters describe a mixed phase: some forces are pulling for continuity, others for change, and the system hasn’t fully chosen sides yet.";
       }
 
-      // and later in the text output, just append comboText:
       aiAnalysisEl.textContent =
         `Mode: ${modeName}. ${modeSummary} ` +
         `${coherenceText} ` +
@@ -1222,14 +1230,6 @@
         `${lambdaText} ` +
         `${muText} ` +
         `${comboText}`;
-
-      aiAnalysisEl.textContent =
-        `Mode: ${modeName}. ${modeSummary} ` +
-        `${coherenceText} ` +
-        `${chaosText} ` +
-        `${Dtext} ` +
-        `${lambdaText} ` +
-        `${muText}`;
     }
 
     function normalizeChaos(chaosVal) {
