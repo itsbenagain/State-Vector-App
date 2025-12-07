@@ -1,956 +1,1493 @@
-<script>
-  // -------------------------------------------------------------------------
-  //  DIMENSIONS
-  // -------------------------------------------------------------------------
-  const dimensions = [
-    { id: "energy", label: "Energy" },
-    { id: "focus", label: "Focus" },
-    { id: "money", label: "Money" },
-    { id: "relationships", label: "Relationships" },
-    { id: "creativeOutput", label: "Creative Output" },
-    { id: "skillGrowth", label: "Skill Growth" },
-    { id: "health", label: "Health" },
-    { id: "environment", label: "Environment" },
-    { id: "socialPresence", label: "Social Presence" },
-    { id: "opportunities", label: "Opportunities" },
-    { id: "chaosLoad", label: "Chaos Load" },
-    { id: "longTermTrajectory", label: "Long-term Trajectory" }
-  ];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>StateBoard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  const STORAGE_HISTORY_KEY = "fieldBoardHistory_v1";
-  const STORAGE_LAST_STATE_KEY = "fieldBoardLastState_v1";
-  const STORAGE_LAST_TIME_KEY = "fieldBoardLastTime_v1";
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: #05060a;
+      color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      padding: 10px;
+    }
 
-  // ---- TRIAL LIMIT ---------------------------------------------------------
-  const TRIAL_START_KEY = "stateBoardTrialStart_v1";
-  const TRIAL_DAYS = 30;
+    .app {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(420px, 2.5fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
 
-  let stateHistory = [];
-  let lastTimestampMs = null;
+    @media (max-width: 1024px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+    }
 
-  // Smoothed state for behavioral smoothing
-  let smoothedState = null;
-  let lastSmoothedTime = null;
+    @media (max-width: 768px) {
+      body {
+        padding: 6px;
+      }
+      .app {
+        grid-template-columns: 1fr;
+      }
+    }
 
-  // For derivative / change detection in AI analysis
-  let lastAnalysisState = null;
-  let lastAnalysisParams = null;
+    /* LEFT BOARD */
 
-  let boardEl,
-    stateGridEl,
-    paramsEl,
-    coherenceEl,
-    tensionEl,
-    dValEl,
-    lambdaValEl,
-    muValEl,
-    timestampEl,
-    aiAnalysisEl,
-    historyCanvas,
-    historyCtx,
-    windowSelectEl,
-    historyFiltersEl,
-    clearChaosBtn,
-    restartClockBtn;
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-auto-rows: minmax(0, 1fr);
+      gap: 8px;
+    }
 
-  const WINDOW_MS = {
-    "5m": 5 * 60 * 1000,
-    "10m": 10 * 60 * 1000,
-    "1h": 60 * 60 * 1000,
-    "6h": 6 * 60 * 60 * 1000,
-    "1d": 24 * 60 * 60 * 1000,
-    "1w": 7 * 24 * 60 * 60 * 1000,
-    "1M": 30 * 24 * 60 * 60 * 1000,
-    "1Y": 365 * 24 * 60 * 60 * 1000
-  };
+    @media (max-width: 1024px) {
+      .board {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
 
-  let activeWindowKey = "10m";
-  const activeDimensions = new Set(dimensions.map(d => d.id)); // default all on
+    @media (max-width: 640px) {
+      .board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
 
-  // ---- TRIAL EXPIRED SCREEN ------------------------------------------------
-  function showTrialExpired() {
-    document.body.innerHTML = `
-      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#05060a;color:#f5f5f5;font-family:system-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;">
-        <div style="max-width:420px;text-align:center;padding:24px 20px;border-radius:14px;background:radial-gradient(circle at top,#181b24 0%,#05060a 100%);box-shadow:0 0 0 1px rgba(255,255,255,0.06),0 18px 36px rgba(0,0,0,0.9);font-size:0.9rem;line-height:1.4;">
-          <div style="font-size:1.2rem;margin-bottom:8px;letter-spacing:0.12em;text-transform:uppercase;">Free trial expired</div>
-          <div>
-            Free trial expired. Email <span style="font-weight:600;">itsbenagain@gmail.com</span>
-            to learn more about future apps and updates.
+    .card {
+      background: radial-gradient(
+        circle at top,
+        #191c24 0%,
+        #0c0e14 60%,
+        #05060a 100%
+      );
+      border-radius: 12px;
+      padding: 10px 6px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 16px 26px rgba(0, 0, 0, 0.8);
+    }
+
+    .card h3 {
+      font-size: 0.76rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .slider-wrapper {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .ticks {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100px;
+      font-size: 0.58rem;
+      color: #a0a4b4;
+      line-height: 1.1;
+      margin-right: 2px;
+    }
+
+    .ticks span {
+      text-align: right;
+    }
+
+    .slider-vertical {
+      writing-mode: bt-lr;
+      -webkit-appearance: slider-vertical;
+      width: 8px;
+      height: 100px;
+      accent-color: #45e0ff;
+    }
+
+    .slider-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-left: 4px;
+    }
+
+    .slider-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      border: 1px solid rgba(132, 189, 255, 0.4);
+      background: radial-gradient(circle at top, #242c3b 0%, #151925 70%);
+      color: #f4f7ff;
+      font-size: 0.9rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slider-btn:hover {
+      border-color: rgba(179, 214, 255, 0.9);
+    }
+
+    .slider-btn:active {
+      transform: translateY(1px) scale(0.97);
+    }
+
+    .value-label {
+      margin-top: 4px;
+      font-size: 0.7rem;
+      color: #c0c4d4;
+    }
+
+    /* RIGHT PANEL */
+
+    .panel {
+      background: radial-gradient(
+        circle at top,
+        #181b24 0%,
+        #070910 55%,
+        #05060a 100%
+      );
+      border-radius: 14px;
+      padding: 10px 14px 8px;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 16px 30px rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.9rem;
+      max-height: calc(100vh - 8px);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-header h1 {
+      font-size: 1.3rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .panel-header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+      white-space: nowrap;
+    }
+
+    .panel-header-right span {
+      color: #9ea3b5;
+    }
+
+    .header-btn {
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.7rem;
+      border: 1px solid rgba(170, 202, 255, 0.55);
+      background: linear-gradient(120deg, #1f2636, #151925);
+      color: #e6f2ff;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .header-btn:hover {
+      border-color: rgba(200, 225, 255, 0.9);
+    }
+
+    .header-btn:active {
+      transform: translateY(1px) scale(0.97);
+    }
+
+    .panel-section-title {
+      font-size: 0.8rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #8fb5ff;
+      margin-bottom: 0;
+    }
+
+    .panel pre {
+      font-size: 0.9rem;
+      padding: 6px 8px;
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+
+    .state-line {
+      font-size: 0.86rem;
+    }
+
+    .ai-analysis {
+      font-size: 0.86rem;
+    }
+
+    .state-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .state-label-line {
+      font-size: 0.78rem;
+      color: #c3c7da;
+      margin-bottom: 4px;
+    }
+
+    .state-label-line span {
+      color: #8b90a8;
+      font-size: 0.74rem;
+      margin-left: 6px;
+    }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 5px;
+      margin-bottom: 2px;
+    }
+
+    .state-pill {
+      font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.68rem;
+      border-radius: 10px;
+      padding: 4px 7px;
+      background: linear-gradient(130deg, #1d2536, #141722);
+      border: 1px solid rgba(167, 196, 255, 0.32);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+    }
+
+    .state-pill .label {
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #aab2d3;
+      font-size: 0.66rem;
+    }
+
+    .state-pill .value {
+      color: #e7f4ff;
+      font-weight: 600;
+      font-size: 0.74rem;
+    }
+
+    pre {
+      font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.86rem;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 6px 10px;
+      border-radius: 8px;
+      overflow: auto;
+      line-height: 1.3;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .panel-section {
+      margin-bottom: 2px;
+    }
+
+    .state-line {
+      font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.86rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .metrics-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 0.78rem;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: linear-gradient(120deg, #1f2a3f, #151a26);
+      border: 1px solid rgba(170, 202, 255, 0.32);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .pill span.label {
+      color: #9da5c4;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 0.7rem;
+    }
+
+    .pill span.value {
+      color: #e6f5ff;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .ai-analysis {
+      margin-top: 2px;
+      font-size: 0.86rem;
+      color: #d0d4ea;
+      max-height: 110px;
+      overflow-y: auto;
+    }
+
+    .history-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .history-window {
+      font-size: 0.76rem;
+      color: #c0c4d4;
+      white-space: nowrap;
+    }
+
+    .history-window select {
+      background: #11131c;
+      border-radius: 999px;
+      border: 1px solid rgba(170, 202, 255, 0.5);
+      color: #e6f2ff;
+      padding: 2px 8px;
+      font-size: 0.74rem;
+    }
+
+    .history-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      margin-bottom: 4px;
+      font-size: 0.72rem;
+    }
+
+    .history-filters label {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      white-space: nowrap;
+    }
+
+    .history-filters input[type="checkbox"] {
+      accent-color: #45e0ff;
+    }
+
+    #historyCanvas {
+      width: 100%;
+      height: 160px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .footer-note {
+      margin-top: auto;
+      font-size: 0.76rem;
+      color: #727894;
+      text-align: right;
+      padding-top: 4px;
+    }
+
+    @media (max-width: 650px) {
+      .panel {
+        max-height: none;
+      }
+      .panel-header h1 {
+        font-size: 1.2rem;
+      }
+      #historyCanvas {
+        height: 140px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- LEFT: Slider Board -->
+    <div class="board" id="board"></div>
+
+    <!-- RIGHT: Equation / Parameters Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <h1>STATEBOARD</h1>
+        </div>
+        <div class="panel-header-right">
+          <span id="timestamp">Last change: —</span>
+          <button type="button" id="clearChaosBtn" class="header-btn">Clear Chaos</button>
+          <button type="button" id="restartClockBtn" class="header-btn">Restart Clock</button>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="state-header">
+          <div class="panel-section-title">Unified Consciousness Field Board</div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="state-header">
+          <div class="panel-section-title">State Vector</div>
+          <div class="state-label-line">
+            x = x*(t) <span>(current configuration)</span>
+          </div>
+        </div>
+        <div id="stateGrid" class="state-grid"></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          Unified Consciousness Field (working form)
+        </div>
+        <pre>i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
+            + ( λ / |z|² ) ψ(t, z)
+            + μ ψ*(t, 1/z)
+∇<sub>z</sub> = ∂/∂z + A<sub>z</sub>(z, z̄)</pre>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">Current Parameters from Board</div>
+        <div id="parameters" class="state-line"></div>
+        <div class="metrics-row">
+          <div class="pill">
+            <span class="label">Coherence</span>
+            <span class="value" id="coherenceVal">—</span>
+          </div>
+          <div class="pill">
+            <span class="label">Trajectory Tension</span>
+            <span class="value" id="tensionVal">—</span>
+          </div>
+          <div class="pill">
+            <span class="label">D</span>
+            <span class="value" id="dVal">—</span>
+          </div>
+          <div class="pill">
+            <span class="label">λ</span>
+            <span class="value" id="lambdaVal">—</span>
+          </div>
+          <div class="pill">
+            <span class="label">μ</span>
+            <span class="value" id="muVal">—</span>
           </div>
         </div>
       </div>
-    `;
-  }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    // ---- trial check ----
-    const now = Date.now();
-    let trialStart = Number(localStorage.getItem(TRIAL_START_KEY));
-    if (!trialStart || Number.isNaN(trialStart)) {
-      trialStart = now;
+      <div class="panel-section">
+        <div class="panel-section-title">Field Analysis</div>
+        <div id="ai-analysis" class="state-line ai-analysis">
+          Adjust the board to get a live reading of how coherent, intense, and
+          reconfiguring your current field is.
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="history-header-row">
+          <div class="panel-section-title">Field History</div>
+          <div class="history-window">
+            Window:
+            <select id="windowSelect">
+              <option value="5m">5 min</option>
+              <option value="10m" selected>10 min</option>
+              <option value="1h">1 hour</option>
+              <option value="6h">6 hours</option>
+              <option value="1d">Day</option>
+              <option value="1w">Week</option>
+              <option value="1M">Month</option>
+              <option value="1Y">Year</option>
+            </select>
+          </div>
+        </div>
+        <div id="historyFilters" class="history-filters"></div>
+        <canvas id="historyCanvas"></canvas>
+      </div>
+
+      <div class="footer-note">
+        Move the sliders. The 12-dimensional state vector drives (D, λ, μ), which tune the current cut of your unified consciousness field.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -------------------------------------------------------------------------
+    //  DIMENSIONS
+    // -------------------------------------------------------------------------
+    const dimensions = [
+      { id: "energy", label: "Energy" },
+      { id: "focus", label: "Focus" },
+      { id: "money", label: "Money" },
+      { id: "relationships", label: "Relationships" },
+      { id: "creativeOutput", label: "Creative Output" },
+      { id: "skillGrowth", label: "Skill Growth" },
+      { id: "health", label: "Health" },
+      { id: "environment", label: "Environment" },
+      { id: "socialPresence", label: "Social Presence" },
+      { id: "opportunities", label: "Opportunities" },
+      { id: "chaosLoad", label: "Chaos Load" },
+      { id: "longTermTrajectory", label: "Long-term Trajectory" }
+    ];
+
+    const STORAGE_HISTORY_KEY = "fieldBoardHistory_v1";
+    const STORAGE_LAST_STATE_KEY = "fieldBoardLastState_v1";
+    const STORAGE_LAST_TIME_KEY = "fieldBoardLastTime_v1";
+
+    let stateHistory = [];
+    let lastTimestampMs = null;
+
+    // Smoothed state for behavioral smoothing
+    let smoothedState = null;
+    let lastSmoothedTime = null;
+
+    // For derivative / change detection in AI analysis
+    let lastAnalysisState = null;
+    let lastAnalysisParams = null;
+
+    // Lagged state used ONLY for trajectory tension relief (money/health/relationships/environment)
+    let tensionLagState = null;
+
+    let boardEl,
+      stateGridEl,
+      paramsEl,
+      coherenceEl,
+      tensionEl,
+      dValEl,
+      lambdaValEl,
+      muValEl,
+      timestampEl,
+      aiAnalysisEl,
+      historyCanvas,
+      historyCtx,
+      windowSelectEl,
+      historyFiltersEl,
+      clearChaosBtn,
+      restartClockBtn;
+
+    const WINDOW_MS = {
+      "5m": 5 * 60 * 1000,
+      "10m": 10 * 60 * 1000,
+      "1h": 60 * 60 * 1000,
+      "6h": 6 * 60 * 60 * 1000,
+      "1d": 24 * 60 * 60 * 1000,
+      "1w": 7 * 24 * 60 * 60 * 1000,
+      "1M": 30 * 24 * 60 * 60 * 1000,
+      "1Y": 365 * 24 * 60 * 60 * 1000
+    };
+
+    let activeWindowKey = "10m";
+    const activeDimensions = new Set(dimensions.map(d => d.id)); // default all on
+
+    document.addEventListener("DOMContentLoaded", () => {
+      boardEl = document.getElementById("board");
+      stateGridEl = document.getElementById("stateGrid");
+      paramsEl = document.getElementById("parameters");
+      coherenceEl = document.getElementById("coherenceVal");
+      tensionEl = document.getElementById("tensionVal");
+      dValEl = document.getElementById("dVal");
+      lambdaValEl = document.getElementById("lambdaVal");
+      muValEl = document.getElementById("muVal");
+      timestampEl = document.getElementById("timestamp");
+      aiAnalysisEl = document.getElementById("ai-analysis");
+      historyCanvas = document.getElementById("historyCanvas");
+      historyCtx = historyCanvas ? historyCanvas.getContext("2d") : null;
+      windowSelectEl = document.getElementById("windowSelect");
+      historyFiltersEl = document.getElementById("historyFilters");
+      clearChaosBtn = document.getElementById("clearChaosBtn");
+      restartClockBtn = document.getElementById("restartClockBtn");
+
+      buildSliderCards();
+      buildStatePills();
+      buildHistoryFilters();
+      loadFromStorageOrDefaults();
+      attachListeners();
+      resizeCanvas();
+      renderHistory();
+
+      // Real-time redraw so history line doesn't vanish when you're not touching sliders
+      setInterval(renderHistory, 1000);
+    });
+
+    // -------------------------------------------------------------------------
+    //  BUILD UI
+    // -------------------------------------------------------------------------
+
+    function buildSliderCards() {
+      if (!boardEl) return;
+
+      dimensions.forEach((dim) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const title = document.createElement("h3");
+        title.textContent = dim.label;
+        card.appendChild(title);
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "slider-wrapper";
+
+        const ticks = document.createElement("div");
+        ticks.className = "ticks";
+        for (let i = 5; i >= 0; i--) {
+          const s = document.createElement("span");
+          s.textContent = i.toString();
+          ticks.appendChild(s);
+        }
+
+        const slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = "0";
+        slider.max = "5";
+        slider.step = "1";
+        slider.value = "3";
+        slider.id = dim.id;
+        slider.className = "slider-vertical";
+
+        const buttons = document.createElement("div");
+        buttons.className = "slider-buttons";
+
+        const plusBtn = document.createElement("button");
+        plusBtn.type = "button";
+        plusBtn.className = "slider-btn plus";
+        plusBtn.dataset.id = dim.id;
+        plusBtn.textContent = "+";
+
+        const minusBtn = document.createElement("button");
+        minusBtn.type = "button";
+        minusBtn.className = "slider-btn minus";
+        minusBtn.dataset.id = dim.id;
+        minusBtn.textContent = "−";
+
+        buttons.appendChild(plusBtn);
+        buttons.appendChild(minusBtn);
+
+        wrapper.appendChild(ticks);
+        wrapper.appendChild(slider);
+        wrapper.appendChild(buttons);
+
+        const valLabel = document.createElement("div");
+        valLabel.className = "value-label";
+        valLabel.id = dim.id + "-value";
+        valLabel.textContent = "3";
+
+        card.appendChild(wrapper);
+        card.appendChild(valLabel);
+        boardEl.appendChild(card);
+      });
+    }
+
+    function buildStatePills() {
+      if (!stateGridEl) return;
+
+      dimensions.forEach((dim) => {
+        const pill = document.createElement("div");
+        pill.className = "state-pill";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "label";
+        nameSpan.textContent = dim.label.toUpperCase();
+
+        const valueSpan = document.createElement("span");
+        valueSpan.className = "value";
+        valueSpan.id = dim.id + "-pill";
+        valueSpan.textContent = "3";
+
+        pill.appendChild(nameSpan);
+        pill.appendChild(valueSpan);
+        stateGridEl.appendChild(pill);
+      });
+    }
+
+    function buildHistoryFilters() {
+      if (!historyFiltersEl) return;
+
+      historyFiltersEl.innerHTML = "";
+      dimensions.forEach((dim) => {
+        const label = document.createElement("label");
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = true;
+        cb.value = dim.id;
+        cb.addEventListener("change", () => {
+          if (cb.checked) activeDimensions.add(dim.id);
+          else activeDimensions.delete(dim.id);
+          renderHistory();
+        });
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(dim.label));
+        historyFiltersEl.appendChild(label);
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    //  STORAGE
+    // -------------------------------------------------------------------------
+
+    function loadFromStorageOrDefaults() {
       try {
-        localStorage.setItem(TRIAL_START_KEY, String(trialStart));
+        const raw = localStorage.getItem(STORAGE_HISTORY_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) stateHistory = parsed;
+        }
       } catch {
-        // ignore
-      }
-    }
-    const daysElapsed = (now - trialStart) / (1000 * 60 * 60 * 24);
-    if (daysElapsed > TRIAL_DAYS) {
-      showTrialExpired();
-      return;
-    }
-
-    // ---- normal boot ----
-    boardEl = document.getElementById("board");
-    stateGridEl = document.getElementById("stateGrid");
-    paramsEl = document.getElementById("parameters");
-    coherenceEl = document.getElementById("coherenceVal");
-    tensionEl = document.getElementById("tensionVal");
-    dValEl = document.getElementById("dVal");
-    lambdaValEl = document.getElementById("lambdaVal");
-    muValEl = document.getElementById("muVal");
-    timestampEl = document.getElementById("timestamp");
-    aiAnalysisEl = document.getElementById("ai-analysis");
-    historyCanvas = document.getElementById("historyCanvas");
-    historyCtx = historyCanvas.getContext("2d");
-    windowSelectEl = document.getElementById("windowSelect");
-    historyFiltersEl = document.getElementById("historyFilters");
-    clearChaosBtn = document.getElementById("clearChaosBtn");
-    restartClockBtn = document.getElementById("restartClockBtn");
-
-    buildSliderCards();
-    buildStatePills();
-    buildHistoryFilters();
-    loadFromStorageOrDefaults();
-    attachListeners();
-    resizeCanvas();
-    renderHistory();
-
-    // Real-time redraw so history line doesn't vanish when you're not touching sliders
-    setInterval(renderHistory, 1000);
-  });
-
-  // -------------------------------------------------------------------------
-  //  BUILD UI
-  // -------------------------------------------------------------------------
-
-  function buildSliderCards() {
-    if (!boardEl) return;
-
-    dimensions.forEach((dim) => {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      const title = document.createElement("h3");
-      title.textContent = dim.label;
-      card.appendChild(title);
-
-      const wrapper = document.createElement("div");
-      wrapper.className = "slider-wrapper";
-
-      const ticks = document.createElement("div");
-      ticks.className = "ticks";
-      for (let i = 5; i >= 0; i--) {
-        const s = document.createElement("span");
-        s.textContent = i.toString();
-        ticks.appendChild(s);
+        stateHistory = [];
       }
 
-      const slider = document.createElement("input");
-      slider.type = "range";
-      slider.min = "0";
-      slider.max = "5";
-      slider.step = "1";
-      slider.value = "3";
-      slider.id = dim.id;
-      slider.className = "slider-vertical";
+      let lastState = null;
+      try {
+        const rawState = localStorage.getItem(STORAGE_LAST_STATE_KEY);
+        if (rawState) {
+          const parsed = JSON.parse(rawState);
+          if (parsed && typeof parsed === "object") lastState = parsed;
+        }
+      } catch {
+        lastState = null;
+      }
 
-      const buttons = document.createElement("div");
-      buttons.className = "slider-buttons";
+      const rawTime = localStorage.getItem(STORAGE_LAST_TIME_KEY);
+      if (rawTime) {
+        const t = Number(rawTime);
+        if (!Number.isNaN(t)) lastTimestampMs = t;
+      }
 
-      const plusBtn = document.createElement("button");
-      plusBtn.type = "button";
-      plusBtn.className = "slider-btn plus";
-      plusBtn.dataset.id = dim.id;
-      plusBtn.textContent = "+";
+      if (lastState) {
+        applyStateToSliders(lastState);
+        const ts = lastTimestampMs ?? Date.now();
+        updateUI(lastState, ts, { persist: false });
+      } else {
+        const state = getStateVector();
+        const now = Date.now();
+        updateUI(state, now, { persist: true });
+      }
+    }
 
-      const minusBtn = document.createElement("button");
-      minusBtn.type = "button";
-      minusBtn.className = "slider-btn minus";
-      minusBtn.dataset.id = dim.id;
-      minusBtn.textContent = "−";
+    function saveToStorage(state, timestampMs) {
+      stateHistory.push({ t: timestampMs, state });
+      if (stateHistory.length > 600) {
+        stateHistory.shift();
+      }
 
-      buttons.appendChild(plusBtn);
-      buttons.appendChild(minusBtn);
+      try {
+        localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
+        localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(state));
+        localStorage.setItem(STORAGE_LAST_TIME_KEY, String(timestampMs));
+      } catch {
+        // ignore storage errors
+      }
+    }
 
-      wrapper.appendChild(ticks);
-      wrapper.appendChild(slider);
-      wrapper.appendChild(buttons);
+    // -------------------------------------------------------------------------
+    //  LISTENERS
+    // -------------------------------------------------------------------------
 
-      const valLabel = document.createElement("div");
-      valLabel.className = "value-label";
-      valLabel.id = dim.id + "-value";
-      valLabel.textContent = "3";
+    function attachListeners() {
+      dimensions.forEach((dim) => {
+        const slider = document.getElementById(dim.id);
+        if (!slider) return;
+        slider.addEventListener("input", () => handleSliderChange());
+      });
 
-      card.appendChild(wrapper);
-      card.appendChild(valLabel);
-      boardEl.appendChild(card);
-    });
-  }
+      if (boardEl) {
+        const btns = boardEl.querySelectorAll(".slider-btn");
+        btns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const id = btn.dataset.id;
+            if (!id) return;
+            const slider = document.getElementById(id);
+            if (!slider) return;
+            let value = Number(slider.value);
+            if (btn.classList.contains("plus")) value += 1;
+            if (btn.classList.contains("minus")) value -= 1;
+            if (value < 0) value = 0;
+            if (value > 5) value = 5;
+            slider.value = String(value);
+            handleSliderChange();
+          });
+        });
+      }
 
-  function buildStatePills() {
-    if (!stateGridEl) return;
+      if (windowSelectEl) {
+        windowSelectEl.addEventListener("change", () => {
+          activeWindowKey = windowSelectEl.value;
+          renderHistory();
+        });
+      }
 
-    dimensions.forEach((dim) => {
-      const pill = document.createElement("div");
-      pill.className = "state-pill";
+      if (clearChaosBtn) {
+        clearChaosBtn.addEventListener("click", handleClearChaos);
+      }
 
-      const nameSpan = document.createElement("span");
-      nameSpan.className = "label";
-      nameSpan.textContent = dim.label.toUpperCase();
+      if (restartClockBtn) {
+        restartClockBtn.addEventListener("click", handleRestartClock);
+      }
 
-      const valueSpan = document.createElement("span");
-      valueSpan.className = "value";
-      valueSpan.id = dim.id + "-pill";
-      valueSpan.textContent = "3";
-
-      pill.appendChild(nameSpan);
-      pill.appendChild(valueSpan);
-      stateGridEl.appendChild(pill);
-    });
-  }
-
-  function buildHistoryFilters() {
-    if (!historyFiltersEl) return;
-
-    historyFiltersEl.innerHTML = "";
-    dimensions.forEach((dim) => {
-      const label = document.createElement("label");
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.checked = true;
-      cb.value = dim.id;
-      cb.addEventListener("change", () => {
-        if (cb.checked) activeDimensions.add(dim.id);
-        else activeDimensions.delete(dim.id);
+      window.addEventListener("resize", () => {
+        resizeCanvas();
         renderHistory();
       });
-      label.appendChild(cb);
-      label.appendChild(document.createTextNode(dim.label));
-      historyFiltersEl.appendChild(label);
-    });
-  }
-
-  // -------------------------------------------------------------------------
-  //  STORAGE
-  // -------------------------------------------------------------------------
-
-  function loadFromStorageOrDefaults() {
-    try {
-      const raw = localStorage.getItem(STORAGE_HISTORY_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) stateHistory = parsed;
-      }
-    } catch {
-      stateHistory = [];
     }
 
-    let lastState = null;
-    try {
-      const rawState = localStorage.getItem(STORAGE_LAST_STATE_KEY);
-      if (rawState) {
-        const parsed = JSON.parse(rawState);
-        if (parsed && typeof parsed === "object") lastState = parsed;
-      }
-    } catch {
-      lastState = null;
-    }
-
-    const rawTime = localStorage.getItem(STORAGE_LAST_TIME_KEY);
-    if (rawTime) {
-      const t = Number(rawTime);
-      if (!Number.isNaN(t)) lastTimestampMs = t;
-    }
-
-    if (lastState) {
-      applyStateToSliders(lastState);
-      const ts = lastTimestampMs ?? Date.now();
-      updateUI(lastState, ts, { persist: false });
-    } else {
+    function handleSliderChange() {
       const state = getStateVector();
       const now = Date.now();
       updateUI(state, now, { persist: true });
     }
-  }
 
-  function saveToStorage(state, timestampMs) {
-    stateHistory.push({ t: timestampMs, state });
-    if (stateHistory.length > 600) {
-      stateHistory.shift();
-    }
+    // Clear recent noise (last ~30s), keep current state as consolidated point
+    function handleClearChaos() {
+      if (!stateHistory.length) return;
+      const now = Date.now();
+      const cutoff = now - 30 * 1000;
 
-    try {
-      localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
-      localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(state));
-      localStorage.setItem(STORAGE_LAST_TIME_KEY, String(timestampMs));
-    } catch {
-      // ignore storage errors
-    }
-  }
+      const kept = stateHistory.filter(p => p.t < cutoff);
+      const currentState = getStateVector();
 
-  // -------------------------------------------------------------------------
-  //  LISTENERS
-  // -------------------------------------------------------------------------
+      kept.push({ t: now, state: currentState });
+      stateHistory = kept;
 
-  function attachListeners() {
-    dimensions.forEach((dim) => {
-      const slider = document.getElementById(dim.id);
-      if (!slider) return;
-      slider.addEventListener("input", () => handleSliderChange());
-    });
-
-    if (boardEl) {
-      const btns = boardEl.querySelectorAll(".slider-btn");
-      btns.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const id = btn.dataset.id;
-          if (!id) return;
-          const slider = document.getElementById(id);
-          if (!slider) return;
-          let value = Number(slider.value);
-          if (btn.classList.contains("plus")) value += 1;
-          if (btn.classList.contains("minus")) value -= 1;
-          if (value < 0) value = 0;
-          if (value > 5) value = 5;
-          slider.value = String(value);
-          handleSliderChange();
-        });
-      });
-    }
-
-    if (windowSelectEl) {
-      windowSelectEl.addEventListener("change", () => {
-        activeWindowKey = windowSelectEl.value;
-        renderHistory();
-      });
-    }
-
-    if (clearChaosBtn) {
-      clearChaosBtn.addEventListener("click", handleClearChaos);
-    }
-
-    if (restartClockBtn) {
-      restartClockBtn.addEventListener("click", handleRestartClock);
-    }
-
-    window.addEventListener("resize", () => {
-      resizeCanvas();
-      renderHistory();
-    });
-  }
-
-  function handleSliderChange() {
-    const state = getStateVector();
-    const now = Date.now();
-    updateUI(state, now, { persist: true });
-  }
-
-  // Clear recent noise (last ~30s), keep current state as consolidated point
-  function handleClearChaos() {
-    if (!stateHistory.length) return;
-    const now = Date.now();
-    const cutoff = now - 30 * 1000;
-
-    const kept = stateHistory.filter(p => p.t < cutoff);
-    const currentState = getStateVector();
-
-    kept.push({ t: now, state: currentState });
-    stateHistory = kept;
-
-    try {
-      localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
-      localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(currentState));
-      localStorage.setItem(STORAGE_LAST_TIME_KEY, String(now));
-    } catch {
-      // ignore
-    }
-
-    smoothedState = { ...currentState };
-    lastSmoothedTime = now;
-    lastAnalysisState = null;
-    lastAnalysisParams = null;
-
-    updateUI(currentState, now, { persist: false });
-  }
-
-  // Restart time axis, keep current configuration
-  function handleRestartClock() {
-    const now = Date.now();
-    const currentState = getStateVector();
-
-    stateHistory = [{ t: now, state: currentState }];
-
-    try {
-      localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
-      localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(currentState));
-      localStorage.setItem(STORAGE_LAST_TIME_KEY, String(now));
-    } catch {
-      // ignore
-    }
-
-    smoothedState = { ...currentState };
-    lastSmoothedTime = now;
-    lastAnalysisState = null;
-    lastAnalysisParams = null;
-
-    updateUI(currentState, now, { persist: false });
-  }
-
-  // -------------------------------------------------------------------------
-  //  STATE / PARAMETERS
-  // -------------------------------------------------------------------------
-
-  function getStateVector() {
-    const state = {};
-    dimensions.forEach((d) => {
-      const el = document.getElementById(d.id);
-      const v = el ? parseInt(el.value, 10) : 0;
-      state[d.id] = Number.isNaN(v) ? 0 : v;
-    });
-    return state;
-  }
-
-  function applyStateToSliders(state) {
-    dimensions.forEach((d) => {
-      const slider = document.getElementById(d.id);
-      if (!slider) return;
-      const v = state[d.id];
-      if (typeof v === "number" && v >= 0 && v <= 5) {
-        slider.value = String(v);
+      try {
+        localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
+        localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(currentState));
+        localStorage.setItem(STORAGE_LAST_TIME_KEY, String(now));
+      } catch {
+        // ignore
       }
-    });
-  }
 
-  const norm = (v) => v / 5;
-  const expo = (x, p) => Math.pow(Math.min(Math.max(x, 0), 1), p);
-
-  // -------------------------------------------------------------------------
-  //  STATE / PARAMETERS  (CLIPPING-STYLE METERS)
-  // -------------------------------------------------------------------------
-
-  function computeParameters(state) {
-    const {
-      energy,
-      focus,
-      money,
-      relationships,
-      creativeOutput,
-      skillGrowth,
-      health,
-      environment,
-      socialPresence,
-      opportunities,
-      chaosLoad,
-      longTermTrajectory
-    } = state;
-
-    const ne  = expo(norm(energy),            1.05);
-    const nf  = expo(norm(focus),             1.05);
-    const nm  = expo(norm(money),             1.05);
-    const nr  = expo(norm(relationships),     1.05);
-    const nco = expo(norm(creativeOutput),    1.08);
-    const nsg = expo(norm(skillGrowth),       1.05);
-    const nh  = expo(norm(health),            1.05);
-    const nen = expo(norm(environment),       1.05);
-    const nsp = expo(norm(socialPresence),    1.02);
-    const nop = expo(norm(opportunities),     1.05);
-    const ncl = expo(norm(chaosLoad),         1.00);
-    const nlt = expo(norm(longTermTrajectory),1.05);
-
-    // --- core field parameters (leave basically as-is) -----------------------
-    let D =
-      0.3  * (1 - nf) +
-      0.25 * (1 - nsg) +
-      0.25 * (1 - nen) +
-      0.4  * ncl;
-
-    let lambda =
-      0.25 * ne +
-      0.18 * nm +
-      0.18 * nr +
-      0.12 * nop +
-      0.10 * nsp +
-      0.09 * nh +
-      0.08 * nlt;
-
-    let mu =
-      0.4  * nco +
-      0.25 * ncl +
-      0.25 * nlt;
-
-    D      = Math.max(0, Math.min(1.6, D));
-    lambda = Math.max(0, Math.min(1.5, lambda));
-    mu     = Math.max(0, Math.min(1.5, mu));
-
-    const constructiveAvg =
-      (ne + nf + nm + nr + nco + nsg + nh + nen + nsp + nop + nlt) / 11;
-
-    // --- coherence: slightly more spread, still 0–100 -----------------------
-    let coherence =
-      0.55 * constructiveAvg +
-      0.25 * nlt +
-      0.15 * (lambda / 1.5) -
-      0.15 * ncl -
-      0.10 * (D / 1.6) +
-      0.05;
-
-    coherence = Math.max(0, Math.min(1, coherence));
-    const coherenceBoosted = Math.pow(coherence, 0.6); // more sensitivity up top
-    const coherencePercent = Math.round(coherenceBoosted * 100);
-
-    // ------------------------------------------------------------------------
-    // TRAJECTORY TENSION = "PULLED APART" (with clipping)
-    // ------------------------------------------------------------------------
-
-    // things that ADD tension:
-    //   - chaosLoad (main driver)
-    //   - creativeOutput, socialPresence, opportunities
-    //   - lack of focus
-    //   - weaker long-term trajectory
-    let tensionPos =
-      0.55 * ncl +             // chaos load: strongest
-      0.14 * nco +             // creative sprawl / projects
-      0.10 * nsp +             // social pulls / visibility
-      0.08 * nop +             // opportunity load
-      0.07 * (1 - nf) +        // low focus = scattering
-      0.06 * (1 - nlt);        // not sure where you’re going
-
-    // light contribution from λ, μ (overall field intensity)
-    tensionPos +=
-      0.05 * (lambda / 1.5) +
-      0.03 * (mu     / 1.5);
-
-    // things that REDUCE tension (harmonizing):
-    //   - money, relationships, health, environment
-    let tensionNeg =
-      0.22 * nm +              // money at 5 = strong relief
-      0.22 * nr +              // good relationships smooth the field
-      0.20 * nh +              // health = resilience / buffer
-      0.16 * nen;              // environment supports you
-
-    let tensionRaw = tensionPos - tensionNeg;
-
-    // clamp to a physical-ish range; negatives mean "no tension"
-    tensionRaw = Math.max(0, Math.min(1.3, tensionRaw));
-
-    // treat ~0.6 as human redline; above that we clip the meter at 100
-    const redline = 0.6;
-    let tensionNorm = tensionRaw / redline;
-    tensionNorm = Math.max(0, Math.min(1, tensionNorm));
-
-    // exponent < 1 => more sensitivity in the upper mid band
-    const tensionBoosted = Math.pow(tensionNorm, 0.8);
-    const tensionScale   = Math.round(tensionBoosted * 100); // 0–100, hard-clip
-
-    return { D, lambda, mu, coherencePercent, tensionScale, chaosLoad };
-  }
-
-  // -------------------------------------------------------------------------
-  //  UI UPDATE (SMOOTHED)
-  // -------------------------------------------------------------------------
-
-  function updateUI(state, timestampMs, { persist }) {
-    // raw labels/pills stay literal
-    dimensions.forEach((d) => {
-      const v = state[d.id];
-      const labelEl = document.getElementById(d.id + "-value");
-      const pillEl = document.getElementById(d.id + "-pill");
-      if (labelEl) labelEl.textContent = String(v);
-      if (pillEl) pillEl.textContent = String(v);
-    });
-
-    // temporal smoothing of underlying state for metrics / AI text
-    if (!smoothedState) {
-      smoothedState = { ...state };
-      lastSmoothedTime = timestampMs;
-    } else {
-      const now = timestampMs;
-      const prevTime = lastSmoothedTime ?? now;
-      const dtSec = Math.max(0, (now - prevTime) / 1000);
-
-      const tau = 20;
-      const cappedDt = Math.min(dtSec, 60);
-      let alpha = 1 - Math.exp(-cappedDt / tau);
-
-      if (!Number.isFinite(alpha) || alpha <= 0) alpha = 0.25;
-
-      dimensions.forEach((d) => {
-        const id = d.id;
-        const current = state[id];
-        const prev = smoothedState[id] ?? current;
-        smoothedState[id] = prev + alpha * (current - prev);
-      });
-
+      smoothedState = { ...currentState };
       lastSmoothedTime = now;
+      lastAnalysisState = null;
+      lastAnalysisParams = null;
+      tensionLagState = { ...currentState };
+
+      updateUI(currentState, now, { persist: false });
     }
 
-    // use smoothedState for all derived parameters
-    const {
-      D,
-      lambda,
-      mu,
-      coherencePercent,
-      tensionScale,
-      chaosLoad
-    } = computeParameters(smoothedState);
+    // Restart time axis, keep current configuration
+    function handleRestartClock() {
+      const now = Date.now();
+      const currentState = getStateVector();
 
-    const Df = D.toFixed(3);
-    const lf = lambda.toFixed(3);
-    const muf = mu.toFixed(3);
+      stateHistory = [{ t: now, state: currentState }];
 
-    if (paramsEl) {
-      paramsEl.textContent =
-        `i ∂ψ/∂t (t, z) = − ${Df} ∇†_z ∇_z ψ(t, z)` +
-        ` + (${lf} / |z|²) ψ(t, z)` +
-        ` + ${muf} ψ*(t, 1/z)`;
+      try {
+        localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
+        localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(currentState));
+        localStorage.setItem(STORAGE_LAST_TIME_KEY, String(now));
+      } catch {
+        // ignore
+      }
+
+      smoothedState = { ...currentState };
+      lastSmoothedTime = now;
+      lastAnalysisState = null;
+      lastAnalysisParams = null;
+      tensionLagState = { ...currentState };
+
+      updateUI(currentState, now, { persist: false });
     }
 
-    if (coherenceEl) coherenceEl.textContent = coherencePercent + " %";
-    if (tensionEl) tensionEl.textContent = tensionScale + " %";
-    if (dValEl) dValEl.textContent = Df;
-    if (lambdaValEl) lambdaValEl.textContent = lf;
-    if (muValEl) muValEl.textContent = muf;
+    // -------------------------------------------------------------------------
+    //  STATE / PARAMETERS
+    // -------------------------------------------------------------------------
 
-    if (timestampEl) {
-      const date = new Date(timestampMs);
-      timestampEl.textContent =
-        "Last change: " +
-        date.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit"
-        });
-    }
-
-    if (persist) {
-      saveToStorage(state, timestampMs);
-    }
-
-    updateAIAnalysis(smoothedState, {
-      D,
-      lambda,
-      mu,
-      coherencePercent,
-      tensionScale,
-      chaosLoad
-    });
-    renderHistory();
-  }
-
-  // -------------------------------------------------------------------------
-  //  "AI" ANALYSIS (BASINS / MODES, LIFE-FITTED)
-  // -------------------------------------------------------------------------
-
-  function updateAIAnalysis(state, params) {
-    if (!aiAnalysisEl) return;
-
-    const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } = params;
-    const chaosLevel = normalizeChaos(chaosLoad);
-
-    // --- compute a simple "change magnitude" from last analysis ---
-    let changeMagnitude = 0;
-    if (lastAnalysisState) {
-      let sum = 0;
-      let count = 0;
+    function getStateVector() {
+      const state = {};
       dimensions.forEach((d) => {
-        const id = d.id;
-        const prev = lastAnalysisState[id] ?? state[id] ?? 0;
-        const cur = state[id] ?? 0;
-        sum += Math.abs(cur - prev);
-        count += 1;
+        const el = document.getElementById(d.id);
+        const v = el ? parseInt(el.value, 10) : 0;
+        state[d.id] = Number.isNaN(v) ? 0 : v;
       });
-      const avg = count > 0 ? sum / count : 0;
-      changeMagnitude = Math.max(0, Math.min(1, avg / 5));
-    } else {
-      changeMagnitude = 0;
+      return state;
     }
 
-    lastAnalysisState = { ...state };
-    lastAnalysisParams = { ...params };
-
-    let modeName = "Unlabeled State";
-    let modeSummary = "";
-
-    const highCoherence = coherencePercent >= 75;
-    const midCoherence = coherencePercent >= 55 && coherencePercent < 75;
-    const lowCoherence = coherencePercent < 55;
-    const lowChaos = chaosLevel <= 0.3;
-    const midChaos = chaosLevel > 0.3 && chaosLevel <= 0.7;
-    const highChaos = chaosLevel > 0.7;
-
-    const lowChange = changeMagnitude <= 0.2;
-    const midChange = changeMagnitude > 0.2 && changeMagnitude <= 0.5;
-    const highChange = changeMagnitude > 0.5;
-
-    const stableD = D < 0.5;
-    const exploratoryD = D >= 0.5;
-
-    if (highCoherence && lowChaos && lowChange && stableD) {
-      modeName = "Deep Groove";
-      modeSummary = "You’re in a groove: life is lined up, and you’re mostly executing rather than reinventing.";
-    } else if (highCoherence && lowChaos && (midChange || exploratoryD)) {
-      modeName = "Stable Cruise";
-      modeSummary = "You’re on a solid arc with gentle adjustments — the system is coherent and responsive.";
-    } else if (midCoherence && lowChaos && midChange) {
-      modeName = "Adaptive Growth";
-      modeSummary = "You’re growing into a clearer shape: multiple areas are shifting, but they still support each other.";
-    } else if (midCoherence && midChaos && highChange && exploratoryD) {
-      modeName = "Remix / Reconfiguration";
-      modeSummary = "You’re actively reshuffling: trying new combinations, testing directions, and letting the next arc emerge.";
-    } else if (lowCoherence && highChaos) {
-      modeName = "Overloaded Field";
-      modeSummary = "Too many demands are stacked at once — simplifying or dropping a couple obligations would immediately help.";
-    } else if (lowCoherence && lowChaos && !exploratoryD) {
-      modeName = "Low-Drive Drift";
-      modeSummary = "Things are relatively calm but under-directed; this is a rest window or a chance to consciously pick a new target.";
-    } else if (lowCoherence && midChaos && midChange) {
-      modeName = "Threshold Zone";
-      modeSummary = "You’re at a threshold: the system isn’t settled yet, but it’s flexible enough to choose a better configuration.";
-    } else {
-      modeName = "Mixed Mode";
-      modeSummary = "You’re in a blended state with a few competing pulls; nothing is broken, but it’s worth noticing which thread you actually want to amplify.";
-    }
-
-    let coherenceText;
-    if (coherencePercent >= 85) {
-      coherenceText = "Coherence is very high — most of your choices are pulling in the same direction.";
-    } else if (coherencePercent >= 70) {
-      coherenceText = "Coherence is strong — the main story of your life right now is clear, even if details are still moving.";
-    } else if (coherencePercent >= 55) {
-      coherenceText = "Coherence is moderate — several threads are active, and they mostly fit together but still need alignment.";
-    } else if (coherencePercent >= 40) {
-      coherenceText = "Coherence is partial — you’re experimenting with how different priorities stack, and not all of them agree yet.";
-    } else {
-      coherenceText = "Coherence is low — you’re in a searching phase where the system hasn’t chosen a clear configuration.";
-    }
-
-    let chaosText;
-    if (chaosLevel <= 0.15) {
-      chaosText = "Chaos load is very low; things are calm, possibly even under-stimulating if you crave momentum.";
-    } else if (chaosLevel <= 0.4) {
-      chaosText = "Chaos load is in a healthy stimulation band — there’s movement without feeling flooded.";
-    } else if (chaosLevel <= 0.7) {
-      chaosText = "Chaos is elevated — there are multiple moving parts; dialing down one or two obligations would immediately create space.";
-    } else {
-      chaosText = "Chaos is running hot — the system is learning through intensity, but relief will come from simplifying your commitment stack, not from doing more.";
-    }
-
-    const dBucket = D < 0.2 ? 0 : D < 0.6 ? 1 : D < 1.0 ? 2 : 3;
-    const lambdaBucket = lambda < 0.3 ? 0 : lambda < 0.7 ? 1 : lambda < 1.2 ? 2 : 3;
-    const muBucket = mu < 0.3 ? 0 : mu < 0.7 ? 1 : mu < 1.1 ? 2 : 3;
-
-    let Dtext;
-    if (dBucket === 0) {
-      Dtext =
-        "Stability is very high: changes tend to be conservative and slow-moving, which favors consolidation and follow-through.";
-    } else if (dBucket === 1) {
-      Dtext =
-        "Stability is solid with some flex — you can adjust course without feeling like the foundation is constantly moving.";
-    } else if (dBucket === 2) {
-      Dtext =
-        "Stability and exploration are balanced: you can experiment meaningfully while still recognizing a familiar baseline.";
-    } else {
-      Dtext =
-        "Exploration is strong — shifts can propagate quickly, so this phase is good for trying bolder moves and seeing what actually sticks.";
-    }
-
-    let lambdaText;
-    if (lambdaBucket === 0) {
-      lambdaText =
-        "λ is very gentle: long-term direction is loose, which can feel spacious but may also blur what counts as a real priority.";
-    } else if (lambdaBucket === 1) {
-      lambdaText =
-        "λ is present but soft — there’s a general sense of where you’re heading, without everything being forced into a single storyline.";
-    } else if (lambdaBucket === 2) {
-      lambdaText =
-        "λ is strong: long-term goals are exerting a clear pull, and short-term choices are more likely to be weighed against that arc.";
-    } else {
-      lambdaText =
-        "λ is very strong — the main arc is highly salient, and it’s natural to measure opportunities by how well they align with that trajectory.";
-    }
-
-    let muText;
-    if (muBucket === 0) {
-      muText =
-        "μ is low: you’re reading situations mostly at face value, working with what’s directly in front of you rather than reinterpreting it.";
-    } else if (muBucket === 1) {
-      muText =
-        "μ is modest: you have room for reinterpretation and new angles, but the existing story still feels like the main reference point.";
-    } else if (muBucket === 2) {
-      muText =
-        "μ is elevated: there’s active reframe energy, making it easier to connect patterns, change meaning, and see familiar things in a new light.";
-    } else {
-      muText =
-        "μ is high: deep narrative edits are on the table — expectations, roles, and past events are more likely to be recontextualized in this phase.";
-    }
-
-    let comboText = "";
-
-    if (dBucket <= 1 && lambdaBucket >= 2 && muBucket <= 1) {
-      comboText =
-        "Taken together, these parameters describe a steady long-arc execution mode: the direction is clear, the ground is firm, and you’re mostly working with situations as they are.";
-    } else if (dBucket <= 2 && lambdaBucket >= 2 && muBucket >= 2) {
-      comboText =
-        "Here, a committed long-term arc is meeting strong reframe energy: the path matters to you, but how you understand it is actively being updated.";
-    } else if (dBucket >= 2 && lambdaBucket <= 1 && muBucket >= 2) {
-      comboText =
-        "This configuration leans toward open-ended exploration: the destination is flexible, and a lot of the work is happening at the level of meaning and narrative.";
-    } else if (dBucket >= 2 && lambdaBucket >= 2 && muBucket >= 1 && muBucket <= 2) {
-      comboText =
-        "Here the system looks ambitious and experimental at the same time — you care about where you’re going, and you’re willing to adjust methods to get there.";
-    } else if (dBucket >= 2 && lambdaBucket === 0 && muBucket === 0) {
-      comboText =
-        "There’s very little structural pull from the future and not much reinterpretation: this can function as a drift window, or as a pause before you decide what actually deserves focus.";
-    } else if (dBucket <= 1 && lambdaBucket <= 1 && muBucket >= 1) {
-      comboText =
-        "The field reads as relatively stable while the story about it is in motion — it’s a natural moment to reconsider how you frame things without needing to overhaul everything at once.";
-    } else if (dBucket === 1 || dBucket === 2) {
-      comboText =
-        "Overall, D, λ, and μ sit in a workable middle band: stability, direction, and reinterpretation are present without any single one overwhelming the others.";
-    } else {
-      comboText =
-        "In combination, these parameters describe a mixed phase: some forces are pulling for continuity, others for change, and the system hasn’t fully chosen sides yet.";
-    }
-
-    aiAnalysisEl.textContent =
-      `Mode: ${modeName}. ${modeSummary} ` +
-      `${coherenceText} ` +
-      `${chaosText} ` +
-      `${Dtext} ` +
-      `${lambdaText} ` +
-      `${muText} ` +
-      `${comboText}`;
-  }
-
-  function normalizeChaos(chaosVal) {
-    const v = Number(chaosVal) || 0;
-    const n = v / 5;
-    if (n < 0) return 0;
-    if (n > 1) return 1;
-    return n;
-  }
-
-  // -------------------------------------------------------------------------
-  //  HISTORY GRAPH (with smoothed curves and live tail)
-  // -------------------------------------------------------------------------
-
-  function resizeCanvas() {
-    if (!historyCanvas) return;
-    const rect = historyCanvas.getBoundingClientRect();
-    historyCanvas.width = rect.width * window.devicePixelRatio;
-    historyCanvas.height = rect.height * window.devicePixelRatio;
-    historyCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
-  }
-
-  function renderHistory() {
-    if (!historyCanvas || !historyCtx) return;
-    const width = historyCanvas.clientWidth;
-    const height = historyCanvas.clientHeight;
-    if (width === 0 || height === 0) return;
-
-    historyCtx.clearRect(0, 0, width, height);
-
-    if (!stateHistory.length) return;
-
-    const now = Date.now();
-    const windowMs = WINDOW_MS[activeWindowKey] || WINDOW_MS["10m"];
-    const startTime = now - windowMs;
-
-    const basePoints = stateHistory.filter(p => p.t >= startTime);
-    if (basePoints.length < 1) return;
-
-    const lastBase = basePoints[basePoints.length - 1];
-
-    let points = basePoints;
-    if (lastBase.t < now) {
-      points = basePoints.concat({
-        t: now,
-        state: lastBase.state
+    function applyStateToSliders(state) {
+      dimensions.forEach((d) => {
+        const slider = document.getElementById(d.id);
+        if (!slider) return;
+        const v = state[d.id];
+        if (typeof v === "number" && v >= 0 && v <= 5) {
+          slider.value = String(v);
+        }
       });
     }
 
-    if (points.length < 2) return;
+    const norm = (v) => v / 5;
+    const expo = (x, p) => Math.pow(Math.min(Math.max(x, 0), 1), p);
 
-    const tMin = points[0].t;
-    const tMax = points[points.length - 1].t;
-    const xSpan = (tMax - tMin) || 1;
+    // -------------------------------------------------------------------------
+    //  STATE / PARAMETERS  (CLIPPING + LAGGED RELIEF)
+    // -------------------------------------------------------------------------
 
-    const leftPad = 24;
-    const rightPad = 6;
-    const topPad = 6;
-    const bottomPad = 16;
+    function computeParameters(state) {
+      const {
+        energy,
+        focus,
+        money,
+        relationships,
+        creativeOutput,
+        skillGrowth,
+        health,
+        environment,
+        socialPresence,
+        opportunities,
+        chaosLoad,
+        longTermTrajectory
+      } = state;
 
-    const plotW = width - leftPad - rightPad;
-    const plotH = height - topPad - bottomPad;
+      const ne  = expo(norm(energy),             1.05);
+      const nf  = expo(norm(focus),              1.05);
+      const nm  = expo(norm(money),              1.05);
+      const nr  = expo(norm(relationships),      1.05);
+      const nco = expo(norm(creativeOutput),     1.08);
+      const nsg = expo(norm(skillGrowth),        1.05);
+      const nh  = expo(norm(health),             1.05);
+      const nen = expo(norm(environment),        1.05);
+      const nsp = expo(norm(socialPresence),     1.02);
+      const nop = expo(norm(opportunities),      1.05);
+      const ncl = expo(norm(chaosLoad),          1.00);
+      const nlt = expo(norm(longTermTrajectory), 1.05);
 
-    historyCtx.strokeStyle = "rgba(255,255,255,0.12)";
-    historyCtx.lineWidth = 1;
-    historyCtx.beginPath();
-    for (let v = 0; v <= 5; v++) {
-      const y = topPad + plotH * (1 - v / 5);
-      historyCtx.moveTo(leftPad, y);
-      historyCtx.lineTo(leftPad + plotW, y);
+      // --- core field parameters (kept roughly as-is) -----------------------
+      let D =
+        0.3  * (1 - nf) +
+        0.25 * (1 - nsg) +
+        0.25 * (1 - nen) +
+        0.4  * ncl;
+
+      let lambda =
+        0.25 * ne +
+        0.18 * nm +
+        0.18 * nr +
+        0.12 * nop +
+        0.10 * nsp +
+        0.09 * nh +
+        0.08 * nlt;
+
+      let mu =
+        0.4  * nco +
+        0.25 * ncl +
+        0.25 * nlt;
+
+      D      = Math.max(0, Math.min(1.6, D));
+      lambda = Math.max(0, Math.min(1.5, lambda));
+      mu     = Math.max(0, Math.min(1.5, mu));
+
+      const constructiveAvg =
+        (ne + nf + nm + nr + nco + nsg + nh + nen + nsp + nop + nlt) / 11;
+
+      // --- coherence: slightly more spread, still 0–100 ---------------------
+      let coherence =
+        0.55 * constructiveAvg +
+        0.25 * nlt +
+        0.15 * (lambda / 1.5) -
+        0.15 * ncl -
+        0.10 * (D / 1.6) +
+        0.05;
+
+      coherence = Math.max(0, Math.min(1, coherence));
+      const coherenceBoosted = Math.pow(coherence, 0.6); // more sensitivity up top
+      const coherencePercent = Math.round(coherenceBoosted * 100);
+
+      // ----------------------------------------------------------------------
+      // TRAJECTORY TENSION = "PULLED APART" (with clipping + lagged relief)
+      // ----------------------------------------------------------------------
+
+      // Use a lagged version of the state for *relief* variables so the
+      // tension meter doesn't instantly drop the second you slide money/health/etc.
+      const tensionSource = tensionLagState || state;
+
+      const nmLag  = expo(norm(tensionSource.money ?? money),              1.05);
+      const nrLag  = expo(norm(tensionSource.relationships ?? relationships), 1.05);
+      const nhLag  = expo(norm(tensionSource.health ?? health),            1.05);
+      const nenLag = expo(norm(tensionSource.environment ?? environment),  1.05);
+
+      // things that ADD tension:
+      //   - chaosLoad (main driver)
+      //   - creativeOutput, socialPresence, opportunities
+      //   - lack of focus
+      //   - weaker long-term trajectory
+      let tensionPos =
+        0.55 * ncl +             // chaos load: strongest
+        0.14 * nco +             // creative sprawl / projects
+        0.10 * nsp +             // social pulls / visibility
+        0.08 * nop +             // opportunity load
+        0.07 * (1 - nf) +        // low focus = scattering
+        0.06 * (1 - nlt);        // not sure where you’re going
+
+      // light contribution from λ, μ (overall field intensity)
+      tensionPos +=
+        0.05 * (lambda / 1.5) +
+        0.03 * (mu     / 1.5);
+
+      // things that REDUCE tension (harmonizing), but via *lagged* state
+      let tensionNeg =
+        0.22 * nmLag +           // money at 5 = strong relief (but delayed)
+        0.22 * nrLag +           // relationships smooth the field (delayed)
+        0.20 * nhLag +           // health = resilience / buffer
+        0.16 * nenLag;           // environment supports you
+
+      let tensionRaw = tensionPos - tensionNeg;
+
+      // clamp to a physical-ish range; negatives mean "no tension"
+      tensionRaw = Math.max(0, Math.min(1.3, tensionRaw));
+
+      // treat ~0.6 as human redline; above that we clip the meter at 100
+      const redline = 0.6;
+      let tensionNorm = tensionRaw / redline;
+      tensionNorm = Math.max(0, Math.min(1, tensionNorm));
+
+      // exponent < 1 => more sensitivity in the upper mid band
+      const tensionBoosted = Math.pow(tensionNorm, 0.8);
+      const tensionScale   = Math.round(tensionBoosted * 100); // 0–100, hard-clip
+
+      return { D, lambda, mu, coherencePercent, tensionScale, chaosLoad };
     }
-    historyCtx.stroke();
 
-    const colors = [
-      "#4dd0e1",
-      "#ffb74d",
-      "#ce93d8",
-      "#81c784",
-      "#f06292",
-      "#64b5f6",
-      "#ba68c8",
-      "#ff8a65",
-      "#4db6ac",
-      "#fff176",
-      "#e57373",
-      "#90a4ae"
-    ];
+    // -------------------------------------------------------------------------
+    //  UI UPDATE (SMOOTHED)
+    // -------------------------------------------------------------------------
 
-    let colorIndex = 0;
+    function updateUI(state, timestampMs, { persist }) {
+      // raw labels/pills stay literal
+      dimensions.forEach((d) => {
+        const v = state[d.id];
+        const labelEl = document.getElementById(d.id + "-value");
+        const pillEl = document.getElementById(d.id + "-pill");
+        if (labelEl) labelEl.textContent = String(v);
+        if (pillEl) pillEl.textContent = String(v);
+      });
 
-    dimensions.forEach((dim) => {
-      if (!activeDimensions.has(dim.id)) return;
+      // temporal smoothing of underlying state for metrics / AI text
+      if (!smoothedState) {
+        smoothedState = { ...state };
+        lastSmoothedTime = timestampMs;
+        // initialize lagged tension state at same point
+        tensionLagState = { ...state };
+      } else {
+        const now = timestampMs;
+        const prevTime = lastSmoothedTime ?? now;
+        const dtSec = Math.max(0, (now - prevTime) / 1000);
 
-      const col = colors[colorIndex % colors.length];
-      colorIndex++;
+        const tau = 20;
+        const cappedDt = Math.min(dtSec, 60);
+        let alpha = 1 - Math.exp(-cappedDt / tau);
 
-      let lastSmooth = null;
-      const smoothAlpha = 0.4;
+        if (!Number.isFinite(alpha) || alpha <= 0) alpha = 0.25;
 
+        dimensions.forEach((d) => {
+          const id = d.id;
+          const current = state[id];
+          const prev = smoothedState[id] ?? current;
+          smoothedState[id] = prev + alpha * (current - prev);
+        });
+
+        lastSmoothedTime = now;
+
+        // Update lagged tension state with a much slower EMA
+        if (!tensionLagState) {
+          tensionLagState = { ...smoothedState };
+        } else {
+          const lagAlpha = 0.02; // small = delayed catch-up
+          dimensions.forEach((d) => {
+            const id = d.id;
+            const cur = smoothedState[id];
+            const prevLag = tensionLagState[id] ?? cur;
+            tensionLagState[id] = prevLag + lagAlpha * (cur - prevLag);
+          });
+        }
+      }
+
+      // use smoothedState for all derived parameters
+      const {
+        D,
+        lambda,
+        mu,
+        coherencePercent,
+        tensionScale,
+        chaosLoad
+      } = computeParameters(smoothedState);
+
+      const Df = D.toFixed(3);
+      const lf = lambda.toFixed(3);
+      const muf = mu.toFixed(3);
+
+      if (paramsEl) {
+        paramsEl.textContent =
+          `i ∂ψ/∂t (t, z) = − ${Df} ∇†_z ∇_z ψ(t, z)` +
+          ` + (${lf} / |z|²) ψ(t, z)` +
+          ` + ${muf} ψ*(t, 1/z)`;
+      }
+
+      if (coherenceEl) coherenceEl.textContent = coherencePercent + " %";
+      if (tensionEl) tensionEl.textContent = tensionScale + " %";
+      if (dValEl) dValEl.textContent = Df;
+      if (lambdaValEl) lambdaValEl.textContent = lf;
+      if (muValEl) muValEl.textContent = muf;
+
+      if (timestampEl) {
+        const date = new Date(timestampMs);
+        timestampEl.textContent =
+          "Last change: " +
+          date.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+          });
+      }
+
+      if (persist) {
+        saveToStorage(state, timestampMs);
+      }
+
+      updateAIAnalysis(smoothedState, {
+        D,
+        lambda,
+        mu,
+        coherencePercent,
+        tensionScale,
+        chaosLoad
+      });
+      renderHistory();
+    }
+
+    // -------------------------------------------------------------------------
+    //  "AI" ANALYSIS (BASINS / MODES, LIFE-FITTED)
+    // -------------------------------------------------------------------------
+
+    function updateAIAnalysis(state, params) {
+      if (!aiAnalysisEl) return;
+
+      const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } = params;
+      const chaosLevel = normalizeChaos(chaosLoad);
+
+      // --- compute a simple "change magnitude" from last analysis ---
+      let changeMagnitude = 0;
+      if (lastAnalysisState) {
+        let sum = 0;
+        let count = 0;
+        dimensions.forEach((d) => {
+          const id = d.id;
+          const prev = lastAnalysisState[id] ?? state[id] ?? 0;
+          const cur = state[id] ?? 0;
+          sum += Math.abs(cur - prev);
+          count += 1;
+        });
+        const avg = count > 0 ? sum / count : 0;
+        changeMagnitude = Math.max(0, Math.min(1, avg / 5));
+      } else {
+        changeMagnitude = 0;
+      }
+
+      lastAnalysisState = { ...state };
+      lastAnalysisParams = { ...params };
+
+      let modeName = "Unlabeled State";
+      let modeSummary = "";
+
+      const highCoherence = coherencePercent >= 75;
+      const midCoherence = coherencePercent >= 55 && coherencePercent < 75;
+      const lowCoherence = coherencePercent < 55;
+      const lowChaos = chaosLevel <= 0.3;
+      const midChaos = chaosLevel > 0.3 && chaosLevel <= 0.7;
+      const highChaos = chaosLevel > 0.7;
+
+      const lowChange = changeMagnitude <= 0.2;
+      const midChange = changeMagnitude > 0.2 && changeMagnitude <= 0.5;
+      const highChange = changeMagnitude > 0.5;
+
+      const stableD = D < 0.5;
+      const exploratoryD = D >= 0.5;
+
+      if (highCoherence && lowChaos && lowChange && stableD) {
+        modeName = "Deep Groove";
+        modeSummary = "You’re in a groove: life is lined up, and you’re mostly executing rather than reinventing.";
+      } else if (highCoherence && lowChaos && (midChange || exploratoryD)) {
+        modeName = "Stable Cruise";
+        modeSummary = "You’re on a solid arc with gentle adjustments — the system is coherent and responsive.";
+      } else if (midCoherence && lowChaos && midChange) {
+        modeName = "Adaptive Growth";
+        modeSummary = "You’re growing into a clearer shape: multiple areas are shifting, but they still support each other.";
+      } else if (midCoherence && midChaos && highChange && exploratoryD) {
+        modeName = "Remix / Reconfiguration";
+        modeSummary = "You’re actively reshuffling: trying new combinations, testing directions, and letting the next arc emerge.";
+      } else if (lowCoherence && highChaos) {
+        modeName = "Overloaded Field";
+        modeSummary = "Too many demands are stacked at once — simplifying or dropping a couple obligations would immediately help.";
+      } else if (lowCoherence && lowChaos && !exploratoryD) {
+        modeName = "Low-Drive Drift";
+        modeSummary = "Things are relatively calm but under-directed; this is a rest window or a chance to consciously pick a new target.";
+      } else if (lowCoherence && midChaos && midChange) {
+        modeName = "Threshold Zone";
+        modeSummary = "You’re at a threshold: the system isn’t settled yet, but it’s flexible enough to choose a better configuration.";
+      } else {
+        modeName = "Mixed Mode";
+        modeSummary = "You’re in a blended state with a few competing pulls; nothing is broken, but it’s worth noticing which thread you actually want to amplify.";
+      }
+
+      let coherenceText;
+      if (coherencePercent >= 85) {
+        coherenceText = "Coherence is very high — most of your choices are pulling in the same direction.";
+      } else if (coherencePercent >= 70) {
+        coherenceText = "Coherence is strong — the main story of your life right now is clear, even if details are still moving.";
+      } else if (coherencePercent >= 55) {
+        coherenceText = "Coherence is moderate — several threads are active, and they mostly fit together but still need alignment.";
+      } else if (coherencePercent >= 40) {
+        coherenceText = "Coherence is partial — you’re experimenting with how different priorities stack, and not all of them agree yet.";
+      } else {
+        coherenceText = "Coherence is low — you’re in a searching phase where the system hasn’t chosen a clear configuration.";
+      }
+
+      let chaosText;
+      if (chaosLevel <= 0.15) {
+        chaosText = "Chaos load is very low; things are calm, possibly even under-stimulating if you crave momentum.";
+      } else if (chaosLevel <= 0.4) {
+        chaosText = "Chaos load is in a healthy stimulation band — there’s movement without feeling flooded.";
+      } else if (chaosLevel <= 0.7) {
+        chaosText = "Chaos is elevated — there are multiple moving parts; dialing down one or two obligations would immediately create space.";
+      } else {
+        chaosText = "Chaos is running hot — the system is learning through intensity, but relief will come from simplifying your commitment stack, not from doing more.";
+      }
+
+      const dBucket = D < 0.2 ? 0 : D < 0.6 ? 1 : D < 1.0 ? 2 : 3;
+      const lambdaBucket = lambda < 0.3 ? 0 : lambda < 0.7 ? 1 : lambda < 1.2 ? 2 : 3;
+      const muBucket = mu < 0.3 ? 0 : mu < 0.7 ? 1 : mu < 1.1 ? 2 : 3;
+
+      let Dtext;
+      if (dBucket === 0) {
+        Dtext =
+          "Stability is very high: changes tend to be conservative and slow-moving, which favors consolidation and follow-through.";
+      } else if (dBucket === 1) {
+        Dtext =
+          "Stability is solid with some flex — you can adjust course without feeling like the foundation is constantly moving.";
+      } else if (dBucket === 2) {
+        Dtext =
+          "Stability and exploration are balanced: you can experiment meaningfully while still recognizing a familiar baseline.";
+      } else {
+        Dtext =
+          "Exploration is strong — shifts can propagate quickly, so this phase is good for trying bolder moves and seeing what actually sticks.";
+      }
+
+      let lambdaText;
+      if (lambdaBucket === 0) {
+        lambdaText =
+          "λ is very gentle: long-term direction is loose, which can feel spacious but may also blur what counts as a real priority.";
+      } else if (lambdaBucket === 1) {
+        lambdaText =
+          "λ is present but soft — there’s a general sense of where you’re heading, without everything being forced into a single storyline.";
+      } else if (lambdaBucket === 2) {
+        lambdaText =
+          "λ is strong: long-term goals are exerting a clear pull, and short-term choices are more likely to be weighed against that arc.";
+      } else {
+        lambdaText =
+          "λ is very strong — the main arc is highly salient, and it’s natural to measure opportunities by how well they align with that trajectory.";
+      }
+
+      let muText;
+      if (muBucket === 0) {
+        muText =
+          "μ is low: you’re reading situations mostly at face value, working with what’s directly in front of you rather than reinterpreting it.";
+      } else if (muBucket === 1) {
+        muText =
+          "μ is modest: you have room for reinterpretation and new angles, but the existing story still feels like the main reference point.";
+      } else if (muBucket === 2) {
+        muText =
+          "μ is elevated: there’s active reframe energy, making it easier to connect patterns, change meaning, and see familiar things in a new light.";
+      } else {
+        muText =
+          "μ is high: deep narrative edits are on the table — expectations, roles, and past events are more likely to be recontextualized in this phase.";
+      }
+
+      let comboText = "";
+
+      if (dBucket <= 1 && lambdaBucket >= 2 && muBucket <= 1) {
+        comboText =
+          "Taken together, these parameters describe a steady long-arc execution mode: the direction is clear, the ground is firm, and you’re mostly working with situations as they are.";
+      } else if (dBucket <= 2 && lambdaBucket >= 2 && muBucket >= 2) {
+        comboText =
+          "Here, a committed long-term arc is meeting strong reframe energy: the path matters to you, but how you understand it is actively being updated.";
+      } else if (dBucket >= 2 && lambdaBucket <= 1 && muBucket >= 2) {
+        comboText =
+          "This configuration leans toward open-ended exploration: the destination is flexible, and a lot of the work is happening at the level of meaning and narrative.";
+      } else if (dBucket >= 2 && lambdaBucket >= 2 && muBucket >= 1 && muBucket <= 2) {
+        comboText =
+          "Here the system looks ambitious and experimental at the same time — you care about where you’re going, and you’re willing to adjust methods to get there.";
+      } else if (dBucket >= 2 && lambdaBucket === 0 && muBucket === 0) {
+        comboText =
+          "There’s very little structural pull from the future and not much reinterpretation: this can function as a drift window, or as a pause before you decide what actually deserves focus.";
+      } else if (dBucket <= 1 && lambdaBucket <= 1 && muBucket >= 1) {
+        comboText =
+          "The field reads as relatively stable while the story about it is in motion — it’s a natural moment to reconsider how you frame things without needing to overhaul everything at once.";
+      } else if (dBucket === 1 || dBucket === 2) {
+        comboText =
+          "Overall, D, λ, and μ sit in a workable middle band: stability, direction, and reinterpretation are present without any single one overwhelming the others.";
+      } else {
+        comboText =
+          "In combination, these parameters describe a mixed phase: some forces are pulling for continuity, others for change, and the system hasn’t fully chosen sides yet.";
+      }
+
+      aiAnalysisEl.textContent =
+        `Mode: ${modeName}. ${modeSummary} ` +
+        `${coherenceText} ` +
+        `${chaosText} ` +
+        `${Dtext} ` +
+        `${lambdaText} ` +
+        `${muText} ` +
+        `${comboText}`;
+    }
+
+    function normalizeChaos(chaosVal) {
+      const v = Number(chaosVal) || 0;
+      const n = v / 5;
+      if (n < 0) return 0;
+      if (n > 1) return 1;
+      return n;
+    }
+
+    // -------------------------------------------------------------------------
+    //  HISTORY GRAPH (with smoothed curves and live tail)
+    // -------------------------------------------------------------------------
+
+    function resizeCanvas() {
+      if (!historyCanvas || !historyCtx) return;
+      const rect = historyCanvas.getBoundingClientRect();
+      historyCanvas.width = rect.width * window.devicePixelRatio;
+      historyCanvas.height = rect.height * window.devicePixelRatio;
+      historyCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    }
+
+    function renderHistory() {
+      if (!historyCanvas || !historyCtx) return;
+      const width = historyCanvas.clientWidth;
+      const height = historyCanvas.clientHeight;
+      if (width === 0 || height === 0) return;
+
+      historyCtx.clearRect(0, 0, width, height);
+
+      if (!stateHistory.length) return;
+
+      const now = Date.now();
+      const windowMs = WINDOW_MS[activeWindowKey] || WINDOW_MS["10m"];
+      const startTime = now - windowMs;
+
+      const basePoints = stateHistory.filter(p => p.t >= startTime);
+      if (basePoints.length < 1) return;
+
+      const lastBase = basePoints[basePoints.length - 1];
+
+      let points = basePoints;
+      if (lastBase.t < now) {
+        points = basePoints.concat({
+          t: now,
+          state: lastBase.state
+        });
+      }
+
+      if (points.length < 2) return;
+
+      const tMin = points[0].t;
+      const tMax = points[points.length - 1].t;
+      const xSpan = (tMax - tMin) || 1;
+
+      const leftPad = 24;
+      const rightPad = 6;
+      const topPad = 6;
+      const bottomPad = 16;
+
+      const plotW = width - leftPad - rightPad;
+      const plotH = height - topPad - bottomPad;
+
+      historyCtx.strokeStyle = "rgba(255,255,255,0.12)";
+      historyCtx.lineWidth = 1;
       historyCtx.beginPath();
-      points.forEach((p, idx) => {
-        const raw = p.state[dim.id] ?? 0;
-        if (lastSmooth === null) {
-          lastSmooth = raw;
-        } else {
-          lastSmooth = lastSmooth + smoothAlpha * (raw - lastSmooth);
-        }
-
-        const x = leftPad + ((p.t - tMin) / xSpan) * plotW;
-        const y = topPad + plotH * (1 - lastSmooth / 5);
-
-        if (idx === 0) {
-          historyCtx.moveTo(x, y);
-        } else {
-          historyCtx.lineTo(x, y);
-        }
-      });
-      historyCtx.strokeStyle = col;
-      historyCtx.lineWidth = 1.5;
+      for (let v = 0; v <= 5; v++) {
+        const y = topPad + plotH * (1 - v / 5);
+        historyCtx.moveTo(leftPad, y);
+        historyCtx.lineTo(leftPad + plotW, y);
+      }
       historyCtx.stroke();
-    });
-  }
-</script>
+
+      const colors = [
+        "#4dd0e1",
+        "#ffb74d",
+        "#ce93d8",
+        "#81c784",
+        "#f06292",
+        "#64b5f6",
+        "#ba68c8",
+        "#ff8a65",
+        "#4db6ac",
+        "#fff176",
+        "#e57373",
+        "#90a4ae"
+      ];
+
+      let colorIndex = 0;
+
+      dimensions.forEach((dim) => {
+        if (!activeDimensions.has(dim.id)) return;
+
+        const col = colors[colorIndex % colors.length];
+        colorIndex++;
+
+        let lastSmooth = null;
+        const smoothAlpha = 0.4;
+
+        historyCtx.beginPath();
+        points.forEach((p, idx) => {
+          const raw = p.state[dim.id] ?? 0;
+          if (lastSmooth === null) {
+            lastSmooth = raw;
+          } else {
+            lastSmooth = lastSmooth + smoothAlpha * (raw - lastSmooth);
+          }
+
+          const x = leftPad + ((p.t - tMin) / xSpan) * plotW;
+          const y = topPad + plotH * (1 - lastSmooth / 5);
+
+          if (idx === 0) {
+            historyCtx.moveTo(x, y);
+          } else {
+            historyCtx.lineTo(x, y);
+          }
+        });
+        historyCtx.strokeStyle = col;
+        historyCtx.lineWidth = 1.5;
+        historyCtx.stroke();
+      });
+    }
+  </script>
+</body>
+</html>
