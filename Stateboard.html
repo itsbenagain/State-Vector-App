@@ -576,6 +576,9 @@
     let lastAnalysisState = null;
     let lastAnalysisParams = null;
 
+    // Lagged state used ONLY for trajectory tension relief (money/health/relationships/environment)
+    let tensionLagState = null;
+
     let boardEl,
       stateGridEl,
       paramsEl,
@@ -887,6 +890,7 @@
       lastSmoothedTime = now;
       lastAnalysisState = null;
       lastAnalysisParams = null;
+      tensionLagState = { ...currentState };
 
       updateUI(currentState, now, { persist: false });
     }
@@ -910,6 +914,7 @@
       lastSmoothedTime = now;
       lastAnalysisState = null;
       lastAnalysisParams = null;
+      tensionLagState = { ...currentState };
 
       updateUI(currentState, now, { persist: false });
     }
@@ -943,125 +948,134 @@
     const expo = (x, p) => Math.pow(Math.min(Math.max(x, 0), 1), p);
 
     // -------------------------------------------------------------------------
-//  STATE / PARAMETERS  (UPDATED FOR CLIPPING-STYLE METERS)
-// -------------------------------------------------------------------------
+    //  STATE / PARAMETERS  (CLIPPING + LAGGED RELIEF)
+    // -------------------------------------------------------------------------
 
-function computeParameters(state) {
-  const {
-    energy,
-    focus,
-    money,
-    relationships,
-    creativeOutput,
-    skillGrowth,
-    health,
-    environment,
-    socialPresence,
-    opportunities,
-    chaosLoad,
-    longTermTrajectory
-  } = state;
+    function computeParameters(state) {
+      const {
+        energy,
+        focus,
+        money,
+        relationships,
+        creativeOutput,
+        skillGrowth,
+        health,
+        environment,
+        socialPresence,
+        opportunities,
+        chaosLoad,
+        longTermTrajectory
+      } = state;
 
-  const ne  = expo(norm(energy),            1.05);
-  const nf  = expo(norm(focus),             1.05);
-  const nm  = expo(norm(money),             1.05);
-  const nr  = expo(norm(relationships),     1.05);
-  const nco = expo(norm(creativeOutput),    1.08);
-  const nsg = expo(norm(skillGrowth),       1.05);
-  const nh  = expo(norm(health),            1.05);
-  const nen = expo(norm(environment),       1.05);
-  const nsp = expo(norm(socialPresence),    1.02);
-  const nop = expo(norm(opportunities),     1.05);
-  const ncl = expo(norm(chaosLoad),         1.00);
-  const nlt = expo(norm(longTermTrajectory),1.05);
+      const ne  = expo(norm(energy),             1.05);
+      const nf  = expo(norm(focus),              1.05);
+      const nm  = expo(norm(money),              1.05);
+      const nr  = expo(norm(relationships),      1.05);
+      const nco = expo(norm(creativeOutput),     1.08);
+      const nsg = expo(norm(skillGrowth),        1.05);
+      const nh  = expo(norm(health),             1.05);
+      const nen = expo(norm(environment),        1.05);
+      const nsp = expo(norm(socialPresence),     1.02);
+      const nop = expo(norm(opportunities),      1.05);
+      const ncl = expo(norm(chaosLoad),          1.00);
+      const nlt = expo(norm(longTermTrajectory), 1.05);
 
-  // --- core field parameters (leave basically as-is) -----------------------
-  let D =
-    0.3  * (1 - nf) +
-    0.25 * (1 - nsg) +
-    0.25 * (1 - nen) +
-    0.4  * ncl;
+      // --- core field parameters (kept roughly as-is) -----------------------
+      let D =
+        0.3  * (1 - nf) +
+        0.25 * (1 - nsg) +
+        0.25 * (1 - nen) +
+        0.4  * ncl;
 
-  let lambda =
-    0.25 * ne +
-    0.18 * nm +
-    0.18 * nr +
-    0.12 * nop +
-    0.10 * nsp +
-    0.09 * nh +
-    0.08 * nlt;
+      let lambda =
+        0.25 * ne +
+        0.18 * nm +
+        0.18 * nr +
+        0.12 * nop +
+        0.10 * nsp +
+        0.09 * nh +
+        0.08 * nlt;
 
-  let mu =
-    0.4  * nco +
-    0.25 * ncl +
-    0.25 * nlt;
+      let mu =
+        0.4  * nco +
+        0.25 * ncl +
+        0.25 * nlt;
 
-  D      = Math.max(0, Math.min(1.6, D));
-  lambda = Math.max(0, Math.min(1.5, lambda));
-  mu     = Math.max(0, Math.min(1.5, mu));
+      D      = Math.max(0, Math.min(1.6, D));
+      lambda = Math.max(0, Math.min(1.5, lambda));
+      mu     = Math.max(0, Math.min(1.5, mu));
 
-  const constructiveAvg =
-    (ne + nf + nm + nr + nco + nsg + nh + nen + nsp + nop + nlt) / 11;
+      const constructiveAvg =
+        (ne + nf + nm + nr + nco + nsg + nh + nen + nsp + nop + nlt) / 11;
 
-  // --- coherence: slightly more spread, still 0–100 -----------------------
-  let coherence =
-    0.55 * constructiveAvg +
-    0.25 * nlt +
-    0.15 * (lambda / 1.5) -
-    0.15 * ncl -
-    0.10 * (D / 1.6) +
-    0.05;
+      // --- coherence: slightly more spread, still 0–100 ---------------------
+      let coherence =
+        0.55 * constructiveAvg +
+        0.25 * nlt +
+        0.15 * (lambda / 1.5) -
+        0.15 * ncl -
+        0.10 * (D / 1.6) +
+        0.05;
 
-  coherence = Math.max(0, Math.min(1, coherence));
-  const coherenceBoosted = Math.pow(coherence, 0.6); // more sensitivity up top
-  const coherencePercent = Math.round(coherenceBoosted * 100);
+      coherence = Math.max(0, Math.min(1, coherence));
+      const coherenceBoosted = Math.pow(coherence, 0.6); // more sensitivity up top
+      const coherencePercent = Math.round(coherenceBoosted * 100);
 
-  // ------------------------------------------------------------------------
-  // TRAJECTORY TENSION = "PULLED APART" (with clipping)
-  // ------------------------------------------------------------------------
+      // ----------------------------------------------------------------------
+      // TRAJECTORY TENSION = "PULLED APART" (with clipping + lagged relief)
+      // ----------------------------------------------------------------------
 
-  // things that ADD tension:
-  //   - chaosLoad (main driver)
-  //   - creativeOutput, socialPresence, opportunities
-  //   - lack of focus
-  //   - weaker long-term trajectory
-  let tensionPos =
-    0.55 * ncl +             // chaos load: strongest
-    0.14 * nco +             // creative sprawl / projects
-    0.10 * nsp +             // social pulls / visibility
-    0.08 * nop +             // opportunity load
-    0.07 * (1 - nf) +        // low focus = scattering
-    0.06 * (1 - nlt);        // not sure where you’re going
+      // Use a lagged version of the state for *relief* variables so the
+      // tension meter doesn't instantly drop the second you slide money/health/etc.
+      const tensionSource = tensionLagState || state;
 
-  // light contribution from λ, μ (overall field intensity)
-  tensionPos +=
-    0.05 * (lambda / 1.5) +
-    0.03 * (mu     / 1.5);
+      const nmLag  = expo(norm(tensionSource.money ?? money),              1.05);
+      const nrLag  = expo(norm(tensionSource.relationships ?? relationships), 1.05);
+      const nhLag  = expo(norm(tensionSource.health ?? health),            1.05);
+      const nenLag = expo(norm(tensionSource.environment ?? environment),  1.05);
 
-  // things that REDUCE tension (harmonizing):
-  //   - money, relationships, health, environment
-  let tensionNeg =
-    0.22 * nm +              // money at 5 = strong relief
-    0.22 * nr +              // good relationships smooth the field
-    0.20 * nh +              // health = resilience / buffer
-    0.16 * nen;              // environment supports you
+      // things that ADD tension:
+      //   - chaosLoad (main driver)
+      //   - creativeOutput, socialPresence, opportunities
+      //   - lack of focus
+      //   - weaker long-term trajectory
+      let tensionPos =
+        0.55 * ncl +             // chaos load: strongest
+        0.14 * nco +             // creative sprawl / projects
+        0.10 * nsp +             // social pulls / visibility
+        0.08 * nop +             // opportunity load
+        0.07 * (1 - nf) +        // low focus = scattering
+        0.06 * (1 - nlt);        // not sure where you’re going
 
-  let tensionRaw = tensionPos - tensionNeg;
+      // light contribution from λ, μ (overall field intensity)
+      tensionPos +=
+        0.05 * (lambda / 1.5) +
+        0.03 * (mu     / 1.5);
 
-  // clamp to a physical-ish range; negatives mean "no tension"
-  tensionRaw = Math.max(0, Math.min(1.3, tensionRaw));
+      // things that REDUCE tension (harmonizing), but via *lagged* state
+      let tensionNeg =
+        0.22 * nmLag +           // money at 5 = strong relief (but delayed)
+        0.22 * nrLag +           // relationships smooth the field (delayed)
+        0.20 * nhLag +           // health = resilience / buffer
+        0.16 * nenLag;           // environment supports you
 
-  // treat ~0.6 as human redline; above that we clip the meter at 100
-  const redline = 0.6;
-  let tensionNorm = tensionRaw / redline;
-  tensionNorm = Math.max(0, Math.min(1, tensionNorm));
+      let tensionRaw = tensionPos - tensionNeg;
 
-  // exponent < 1 => more sensitivity in the upper mid band
-  const tensionBoosted = Math.pow(tensionNorm, 0.8);
-  const tensionScale   = Math.round(tensionBoosted * 100); // 0–100, hard-clip
+      // clamp to a physical-ish range; negatives mean "no tension"
+      tensionRaw = Math.max(0, Math.min(1.3, tensionRaw));
 
-  return { D, lambda, mu, coherencePercent, tensionScale, chaosLoad };
-}
+      // treat ~0.6 as human redline; above that we clip the meter at 100
+      const redline = 0.6;
+      let tensionNorm = tensionRaw / redline;
+      tensionNorm = Math.max(0, Math.min(1, tensionNorm));
+
+      // exponent < 1 => more sensitivity in the upper mid band
+      const tensionBoosted = Math.pow(tensionNorm, 0.8);
+      const tensionScale   = Math.round(tensionBoosted * 100); // 0–100, hard-clip
+
+      return { D, lambda, mu, coherencePercent, tensionScale, chaosLoad };
+    }
+
     // -------------------------------------------------------------------------
     //  UI UPDATE (SMOOTHED)
     // -------------------------------------------------------------------------
@@ -1080,6 +1094,8 @@ function computeParameters(state) {
       if (!smoothedState) {
         smoothedState = { ...state };
         lastSmoothedTime = timestampMs;
+        // initialize lagged tension state at same point
+        tensionLagState = { ...state };
       } else {
         const now = timestampMs;
         const prevTime = lastSmoothedTime ?? now;
@@ -1099,6 +1115,19 @@ function computeParameters(state) {
         });
 
         lastSmoothedTime = now;
+
+        // Update lagged tension state with a much slower EMA
+        if (!tensionLagState) {
+          tensionLagState = { ...smoothedState };
+        } else {
+          const lagAlpha = 0.02; // small = delayed catch-up
+          dimensions.forEach((d) => {
+            const id = d.id;
+            const cur = smoothedState[id];
+            const prevLag = tensionLagState[id] ?? cur;
+            tensionLagState[id] = prevLag + lagAlpha * (cur - prevLag);
+          });
+        }
       }
 
       // use smoothedState for all derived parameters
