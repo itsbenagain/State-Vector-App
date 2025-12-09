@@ -434,9 +434,301 @@
         height: 140px;
       }
     }
+
+    /* ------------------------------------------------------------------
+       ONBOARDING OVERLAY + QUIZ
+       ------------------------------------------------------------------ */
+    .onboarding-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .onboarding-overlay.hidden {
+      display: none;
+    }
+
+    .onboarding-modal {
+      max-width: 720px;
+      width: 95%;
+      max-height: 90vh;
+      background: radial-gradient(circle at top, #202536 0%, #090b12 70%);
+      border-radius: 18px;
+      padding: 18px 18px 14px;
+      box-shadow:
+        0 0 0 1px rgba(210, 230, 255, 0.14),
+        0 26px 60px rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .onboarding-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .onboarding-title {
+      font-size: 1.15rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #e8f2ff;
+    }
+
+    .onboarding-subtitle {
+      font-size: 0.78rem;
+      color: #aab4d6;
+    }
+
+    .onboarding-body {
+      font-size: 0.82rem;
+      color: #d3d7ee;
+      line-height: 1.4;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .onboarding-body p {
+      margin-bottom: 6px;
+    }
+
+    .onboarding-quiz-grid {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 640px) {
+      .onboarding-quiz-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .onboarding-field {
+      background: linear-gradient(135deg, #181d2b, #141724);
+      border-radius: 10px;
+      padding: 6px 7px;
+      border: 1px solid rgba(170, 202, 255, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .onboarding-field label {
+      font-size: 0.72rem;
+      color: #c3ceff;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .onboarding-field small {
+      font-size: 0.7rem;
+      color: #8f96b5;
+    }
+
+    .onboarding-field input[type="number"] {
+      margin-top: 2px;
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid rgba(170, 202, 255, 0.6);
+      background: #050712;
+      color: #e6f0ff;
+      font-size: 0.78rem;
+      padding: 2px 6px;
+      outline: none;
+    }
+
+    .onboarding-field input[type="number"]::placeholder {
+      color: #606579;
+    }
+
+    .onboarding-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: #a6aec8;
+    }
+
+    .onboarding-footer-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .onboarding-footer-left input[type="checkbox"] {
+      accent-color: #45e0ff;
+    }
+
+    .onboarding-footer-right {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-secondary,
+    .btn-primary {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(120deg, #151927, #101320);
+      color: #d5d9f5;
+      border-color: rgba(170, 202, 255, 0.6);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3bd3ff, #6effb8);
+      color: #020308;
+      font-weight: 600;
+    }
+
+    .btn-secondary:active,
+    .btn-primary:active {
+      transform: translateY(1px) scale(0.97);
+    }
   </style>
 </head>
 <body>
+  <!-- ONBOARDING OVERLAY -->
+  <div id="onboardingOverlay" class="onboarding-overlay hidden">
+    <div class="onboarding-modal">
+      <div class="onboarding-header">
+        <div>
+          <div class="onboarding-title">Welcome to StateBoard</div>
+          <div class="onboarding-subtitle">
+            A 12-dimensional state vector driving a unified consciousness field.
+          </div>
+        </div>
+      </div>
+
+      <div class="onboarding-body">
+        <p>
+          <strong>How to use it:</strong> move the sliders based on how you feel
+          <em>right now</em> in each area. The state vector feeds into the
+          working field equation and updates the analysis in real time.
+        </p>
+        <p>
+          Don’t put in how you “should” feel or how you hope to feel later —
+          just the literal present state. The more honest the input, the more
+          accurate the reflection.
+        </p>
+        <p>
+          If you want, you can do a quick starting pass below so the board
+          doesn’t begin from a generic “3 across the board.”
+          Use integers 0–5 (0 = empty / offline, 5 = maximally charged).
+          You can always refine with the sliders afterwards.
+        </p>
+
+        <div class="onboarding-quiz-grid">
+          <!-- One number field per dimension, wired in JS by ID -->
+          <div class="onboarding-field">
+            <label for="onboard-energy">Energy</label>
+            <small>How charged is your system right now?</small>
+            <input id="onboard-energy" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+
+          <div class="onboarding-field">
+            <label for="onboard-focus">Focus</label>
+            <small>Actual focus, not intention.</small>
+            <input id="onboard-focus" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+
+          <div class="onboarding-field">
+            <label for="onboard-money">Money</label>
+            <small>Resourced vs. squeezed, <em>right now</em>.</small>
+            <input id="onboard-money" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+
+          <div class="onboarding-field">
+            <label for="onboard-relationships">Relationships</label>
+            <small>Support, connection, and friction level.</small>
+            <input id="onboard-relationships" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+
+          <div class="onboarding-field">
+            <label for="onboard-creativeOutput">Creative Output</label>
+            <small>How actively are you actually creating?</small>
+            <input id="onboard-creativeOutput" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+
+          <div class="onboarding-field">
+            <label for="onboard-skillGrowth">Skill Growth</label>
+            <small>Training, learning, sharpening.</small>
+            <input id="onboard-skillGrowth" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+
+          <div class="onboarding-field">
+            <label for="onboard-health">Health</label>
+            <small>Body system stability + resilience.</small>
+            <input id="onboard-health" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+
+          <div class="onboarding-field">
+            <label for="onboard-environment">Environment</label>
+            <small>Space, noise, logistics, logistics friction.</small>
+            <input id="onboard-environment" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+
+          <div class="onboarding-field">
+            <label for="onboard-socialPresence">Social Presence</label>
+            <small>Signals, visibility, conversations live right now.</small>
+            <input id="onboard-socialPresence" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+
+          <div class="onboarding-field">
+            <label for="onboard-opportunities">Opportunities</label>
+            <small>Doors open in your field at this moment.</small>
+            <input id="onboard-opportunities" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+
+          <div class="onboarding-field">
+            <label for="onboard-chaosLoad">Chaos Load</label>
+            <small>Spinning plates, uncertainty, inbox weight.</small>
+            <input id="onboard-chaosLoad" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+
+          <div class="onboarding-field">
+            <label for="onboard-longTermTrajectory">Long-Term Trajectory</label>
+            <small>How “on track” does the bigger arc feel?</small>
+            <input id="onboard-longTermTrajectory" type="number" min="0" max="5" placeholder="0–5" />
+          </div>
+        </div>
+      </div>
+
+      <div class="onboarding-footer">
+        <div class="onboarding-footer-left">
+          <input id="onboard-dontShowAgain" type="checkbox" />
+          <label for="onboard-dontShowAgain">Don’t show this again on this device</label>
+        </div>
+        <div class="onboarding-footer-right">
+          <button id="onboard-skip" class="btn-secondary" type="button">
+            Skip (start from neutral)
+          </button>
+          <button id="onboard-apply" class="btn-primary" type="button">
+            Apply &amp; start
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- END ONBOARDING OVERLAY -->
+
   <div class="app">
     <!-- LEFT: Slider Board -->
     <div class="board" id="board"></div>
@@ -564,6 +856,7 @@
     const STORAGE_HISTORY_KEY = "fieldBoardHistory_v1";
     const STORAGE_LAST_STATE_KEY = "fieldBoardLastState_v1";
     const STORAGE_LAST_TIME_KEY = "fieldBoardLastTime_v1";
+    const ONBOARDING_FLAG_KEY = "fieldBoardOnboardingSeen_v1";
 
     let stateHistory = [];
     let lastTimestampMs = null;
@@ -633,6 +926,7 @@
       buildHistoryFilters();
       loadFromStorageOrDefaults();
       attachListeners();
+      initOnboarding(); // NEW: onboarding modal wiring
       resizeCanvas();
       renderHistory();
 
@@ -749,6 +1043,70 @@
         label.appendChild(document.createTextNode(dim.label));
         historyFiltersEl.appendChild(label);
       });
+    }
+
+    // -------------------------------------------------------------------------
+    //  ONBOARDING LOGIC
+    // -------------------------------------------------------------------------
+
+    function initOnboarding() {
+      const overlay = document.getElementById("onboardingOverlay");
+      if (!overlay) return;
+
+      const seenFlag = localStorage.getItem(ONBOARDING_FLAG_KEY);
+      if (seenFlag === "1") {
+        overlay.classList.add("hidden");
+        return;
+      }
+
+      // Show on first load
+      overlay.classList.remove("hidden");
+
+      const applyBtn = document.getElementById("onboard-apply");
+      const skipBtn = document.getElementById("onboard-skip");
+      const dontShowAgainCb = document.getElementById("onboard-dontShowAgain");
+
+      function hideOverlay() {
+        overlay.classList.add("hidden");
+        try {
+          if (dontShowAgainCb && dontShowAgainCb.checked) {
+            localStorage.setItem(ONBOARDING_FLAG_KEY, "1");
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      if (skipBtn) {
+        skipBtn.addEventListener("click", () => {
+          hideOverlay();
+        });
+      }
+
+      if (applyBtn) {
+        applyBtn.addEventListener("click", () => {
+          // read quiz values and apply to sliders
+          dimensions.forEach((dim) => {
+            const inputId = "onboard-" + dim.id;
+            const inputEl = document.getElementById(inputId);
+            if (!inputEl) return;
+            const raw = inputEl.value.trim();
+            if (raw === "") return; // leave this dimension at default if user skipped it
+            const v = parseInt(raw, 10);
+            if (Number.isNaN(v)) return;
+            const clamped = Math.min(5, Math.max(0, v));
+            const slider = document.getElementById(dim.id);
+            if (slider) slider.value = String(clamped);
+          });
+
+          // force a single consolidated update from new state
+          const state = getStateVector();
+          const now = Date.now();
+          updateUI(state, now, { persist: true });
+
+          hideOverlay();
+        });
+      }
     }
 
     // -------------------------------------------------------------------------
@@ -1125,7 +1483,7 @@
             const id = d.id;
             const cur = smoothedState[id];
             const prevLag = tensionLagState[id] ?? cur;
-            tensionLagState[id] = prevLag + lagAlpha * (cur - prevLag);
+            tensionLagState[id] = prevLag + lagAlpha * (cur - cur + (cur - prevLag));
           });
         }
       }
