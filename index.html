@@ -826,18 +826,23 @@
     <div class="board" id="board"></div>
 
     <!-- RIGHT: Equation / Parameters Panel -->
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-header-left">
-          <h1>STATEBOARD</h1>
-        </div>
-        <div class="panel-header-right">
-          <span id="timestamp">Last change: —</span>
-          <span id="trialBadge" class="trial-badge"></span>
-          <button type="button" id="clearChaosBtn" class="header-btn">Clear Chaos</button>
-          <button type="button" id="restartClockBtn" class="header-btn">Restart Clock</button>
-        </div>
-      </div>
+    <div class="panel-header">
+  <div class="panel-header-left">
+    <h1>STATEBOARD</h1>
+  </div>
+
+  <div class="panel-header-right">
+    <div class="panel-header-trial-row">
+      <span class="trial-pill">Local-only alpha · no cloud sync</span>
+    </div>
+
+    <div class="panel-header-main-row">
+      <span id="timestamp">Last change: —</span>
+      <button type="button" id="clearChaosBtn" class="header-btn">Clear Chaos</button>
+      <button type="button" id="restartClockBtn" class="header-btn">Restart Clock</button>
+    </div>
+  </div>
+</div>
 
       <div class="panel-section">
         <div class="state-header">
