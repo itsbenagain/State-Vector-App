@@ -181,13 +181,12 @@
       overflow: hidden;
     }
 
-  .panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;   /* <— THIS is what moves the pills down */
-}
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
 
     .panel-header h1 {
       font-size: 1.3rem;
@@ -822,17 +821,19 @@
     <div class="board" id="board"></div>
 
     <!-- RIGHT: Equation / Parameters Panel -->
-   <div class="panel-header-right">
-    <div class="panel-header-row">
-      <span id="timestamp">Last change: —</span>
-      <span id="trialBadge" class="trial-pill">TRIAL: 30 DAYS LEFT</span>
-    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <h1>STATEBOARD</h1>
+        </div>
+        <div class="panel-header-right">
+          <span id="timestamp">Last change: —</span>
+          <span id="trialBadge" class="trial-badge"></span>
+          <button type="button" id="clearChaosBtn" class="header-btn">Clear Chaos</button>
+          <button type="button" id="restartClockBtn" class="header-btn">Restart Clock</button>
+        </div>
+      </div>
 
-    <div class="panel-header-row">
-      <button type="button" id="clearChaosBtn" class="header-btn">Clear Chaos</button>
-      <button type="button" id="restartClockBtn" class="header-btn">Restart Clock</button>
-    </div>
-  </div>
       <div class="panel-section">
         <div class="state-header">
           <div class="panel-section-title">Unified Consciousness Field Board</div>
