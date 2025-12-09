@@ -181,12 +181,13 @@
       overflow: hidden;
     }
 
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;   /* <— THIS is what moves the pills down */
+}
 
     .panel-header h1 {
       font-size: 1.3rem;
