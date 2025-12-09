@@ -196,12 +196,14 @@
     }
 
     .panel-header-right {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.76rem;
-      white-space: nowrap;
-    }
+  display: flex;
+  flex-wrap: wrap;          /* allow a second line */
+  justify-content: flex-end;/* keep everything pinned to the right */
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  white-space: normal;      /* or just delete this line entirely */
+}
 
     .panel-header-right span {
       color: #9ea3b5;
