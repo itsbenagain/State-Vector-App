@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>StateBoard</title>
   <style>
     * {
@@ -115,12 +116,16 @@
       text-align: right;
     }
 
+    /* Modern vertical slider: works in current Chrome, Edge, Firefox, Safari.
+       direction: rtl puts 0 at the bottom and 5 at the top. */
     .slider-vertical {
-      writing-mode: bt-lr;
-      -webkit-appearance: slider-vertical;
-      width: 8px;
+      writing-mode: vertical-lr;
+      direction: rtl;
+      width: 22px;
       height: 100px;
+      margin: 0;
       accent-color: #45e0ff;
+      cursor: pointer;
     }
 
     .slider-buttons {
@@ -178,7 +183,7 @@
       gap: 8px;
       font-size: 0.9rem;
       max-height: calc(100vh - 8px);
-      overflow: hidden;
+      overflow-y: auto;
     }
 
     .panel-header {
@@ -241,10 +246,6 @@
       padding: 6px 8px;
       margin-top: 2px;
       margin-bottom: 2px;
-    }
-
-    .state-line {
-      font-size: 0.86rem;
     }
 
     .state-header {
@@ -325,7 +326,7 @@
 
     .metrics-row {
       display: flex;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       gap: 6px;
       margin-top: 4px;
       font-size: 0.78rem;
@@ -359,7 +360,7 @@
       margin-top: 2px;
       font-size: 0.86rem;
       color: #d0d4ea;
-      max-height: 210px;
+      max-height: 260px;
       overflow-y: auto;
       white-space: pre-wrap;
       line-height: 1.35;
@@ -399,12 +400,16 @@
     .history-filters label {
       display: flex;
       align-items: center;
-      gap: 2px;
+      gap: 3px;
       white-space: nowrap;
+      cursor: pointer;
     }
 
-    .history-filters input[type="checkbox"] {
-      accent-color: #45e0ff;
+    .swatch {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 2px;
     }
 
     #historyCanvas {
@@ -413,6 +418,7 @@
       border-radius: 8px;
       background: rgba(0, 0, 0, 0.35);
       border: 1px solid rgba(255, 255, 255, 0.08);
+      display: block;
     }
 
     .footer-note {
@@ -604,93 +610,713 @@
     }
 
     /* ------------------------------------------------------------------
-       TRIAL OVERLAY (30-DAY LOCAL TIMER)
+       PASSWORD LOCK SCREEN
        ------------------------------------------------------------------ */
-    .trial-overlay {
+    .lock-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.88);
+      background: radial-gradient(circle at center, #10131c 0%, #05060a 70%);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 10000;
+      z-index: 10001;
+      padding: 16px;
     }
 
-    .trial-overlay.hidden {
+    .lock-overlay.hidden {
       display: none;
     }
 
-    .trial-modal {
-      max-width: 520px;
-      width: 92%;
-      background: radial-gradient(circle at top, #291829 0%, #05020a 70%);
-      border-radius: 20px;
-      padding: 20px 20px 16px;
+    .lock-modal {
+      width: 100%;
+      max-width: 360px;
+      background: radial-gradient(circle at top, #202536 0%, #090b12 75%);
+      border-radius: 18px;
+      padding: 22px 20px 18px;
       box-shadow:
-        0 0 0 1px rgba(255, 200, 230, 0.35),
-        0 28px 60px rgba(0, 0, 0, 0.95);
-      color: #ffe9f7;
-      text-align: left;
-      font-size: 0.88rem;
+        0 0 0 1px rgba(210, 230, 255, 0.14),
+        0 26px 60px rgba(0, 0, 0, 0.9);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
 
-    .trial-modal h2 {
-      margin: 0;
-      font-size: 1.1rem;
-      letter-spacing: 0.12em;
+    .lock-modal h2 {
+      font-size: 1.15rem;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
+      color: #e8f2ff;
     }
 
-    .trial-modal p {
-      margin: 2px 0;
+    .lock-modal p {
+      font-size: 0.82rem;
+      color: #aab4d6;
+    }
+
+    .lock-modal input#lockInput {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(170, 202, 255, 0.6);
+      background: #050712;
+      color: #e6f0ff;
+      font-size: 0.95rem;
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    .lock-modal input#lockInput:focus {
+      border-color: #45e0ff;
+    }
+
+    .lock-remember {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+      color: #a6aec8;
+      cursor: pointer;
+    }
+
+    .lock-remember input {
+      accent-color: #45e0ff;
+    }
+
+    .lock-error {
+      min-height: 1em;
+      font-size: 0.76rem;
+      color: #ff8fa3;
+    }
+
+    .lock-modal .btn-primary {
+      padding: 8px 10px;
+      font-size: 0.86rem;
+    }
+
+    .shake {
+      animation: shake 0.35s;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+    }
+
+    .buy-btn {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      padding: 9px 10px;
+      font-size: 0.9rem;
+    }
+
+    .buy-btn.disabled {
+      background: linear-gradient(120deg, #2a2f40, #1b1f2c);
+      color: #8f96b5;
+      cursor: default;
+      font-weight: 500;
+    }
+
+    .buy-note {
+      font-size: 0.74rem !important;
+      color: #8f96b5 !important;
+      text-align: center;
+      user-select: text;
+    }
+
+    .buy-note b {
+      color: #c9ffe6;
+      font-weight: 600;
+      user-select: all;
+    }
+
+    .lock-divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.72rem;
+      color: #8f96b5;
+      margin-top: 4px;
+    }
+
+    .lock-divider::before,
+    .lock-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(170, 202, 255, 0.18);
+    }
+
+    .unlock-btn {
+      padding: 8px 10px;
+      font-size: 0.86rem;
+    }
+
+    .lock-link {
+      background: none;
+      border: none;
+      color: #8fb5ff;
+      font-size: 0.78rem;
+      cursor: pointer;
+      text-decoration: underline;
+      align-self: center;
+      padding: 2px;
+    }
+
+    .hidden-el {
+      display: none !important;
+    }
+
+    .trial-btn {
+      border-color: rgba(110, 255, 184, 0.55);
+      color: #c9ffe6;
+    }
+
+    /* ------------------------------------------------------------------
+       PLAIN-ENGLISH ANALYSIS
+       ------------------------------------------------------------------ */
+    .ai-analysis {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      white-space: normal;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      max-height: 380px;
       line-height: 1.4;
     }
 
-    .trial-modal .trial-note {
-      font-size: 0.78rem;
-      color: #f5c1dd;
-    }
-
-    .trial-modal .trial-strong {
+    .sig-name {
+      font-size: 1rem;
       font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #e7f4ff;
     }
 
-    .trial-badge {
-      border-radius: 999px;
-      padding: 2px 8px;
-      border: 1px solid rgba(255, 183, 213, 0.7);
-      background: radial-gradient(circle at top, #3b2336 0%, #190711 80%);
-      color: #ffd9ed;
-      font-size: 0.7rem;
+    .sig-plain {
+      color: #c8cde2;
+      font-size: 0.88rem;
+    }
+
+    .an-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .an-row {
+      display: grid;
+      grid-template-columns: 128px 1fr;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .an-label {
+      font-size: 0.66rem;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
+      color: #8fb5ff;
+      padding-top: 3px;
+    }
+
+    .an-metrics {
+      font-size: 0.8rem;
+      color: #c3c7da;
+    }
+
+    .an-explain {
+      font-size: 0.72rem;
+      color: #7f87a6;
+      margin-top: 2px;
+    }
+
+    .an-try {
+      background: rgba(110, 255, 184, 0.06);
+      border: 1px solid rgba(110, 255, 184, 0.3);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 0.86rem;
+      color: #e2fff1;
+    }
+
+    .an-try .an-label {
+      color: #6effb8;
+      padding-top: 0;
+    }
+
+    .an-details summary {
+      cursor: pointer;
+      font-size: 0.74rem;
       letter-spacing: 0.06em;
+      color: #8f96b5;
+      padding: 2px 0;
+    }
+
+    .an-details summary:hover {
+      color: #c3ceff;
+    }
+
+    .an-deep {
+      font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      white-space: pre-wrap;
+      color: #b9bed6;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 480px) {
+      .an-row {
+        grid-template-columns: 1fr;
+        gap: 1px;
+      }
+    }
+
+    .pill span.label.greek,
+    .greek {
+      text-transform: none !important;
+      font-size: 0.82rem;
+      letter-spacing: 0;
+    }
+
+    /* ------------------------------------------------------------------
+       ADAPTIVE LOOP (UCF ENGINE)
+       ------------------------------------------------------------------ */
+    .eq-full {
+      font-size: 0.74rem !important;
+      line-height: 1.45;
+      white-space: pre;
+    }
+
+    .ucf-status {
+      font-size: 0.78rem;
+      color: #aab2d3;
+      margin: 3px 0 6px;
+    }
+
+    .unity {
+      margin-bottom: 4px;
+    }
+
+    .unity-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(206, 147, 216, 0.35), rgba(206, 147, 216, 0.2));
+      border: 1px solid rgba(206, 147, 216, 0.35);
+      overflow: hidden;
+    }
+
+    .unity-bar span {
+      display: block;
+      height: 100%;
+      width: 50%;
+      background: linear-gradient(90deg, #45e0ff, #6effb8);
+      transition: width 0.6s ease;
+    }
+
+    .unity-label {
+      font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.7rem;
+      color: #9da5c4;
+      margin-top: 3px;
+    }
+
+    .ucf-sub {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #8f96b5;
+      margin: 8px 0 4px;
+    }
+
+    .kappa-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px 14px;
+    }
+
+    .kappa-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 34px;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+    }
+
+    .kappa-label {
+      color: #c3c7da;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kappa-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      overflow: hidden;
+    }
+
+    .kappa-fill {
+      display: block;
+      height: 100%;
+      width: 50%;
+      border-radius: 999px;
+      transition: width 0.6s ease;
+    }
+
+    .kappa-val {
+      font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+      color: #e7f4ff;
+      text-align: right;
+    }
+
+    .ucf-forecast {
+      font-size: 0.8rem;
+      color: #d0d4ea;
+    }
+
+    @media (max-width: 480px) {
+      .kappa-grid {
+        grid-template-columns: 1fr;
+      }
+      .eq-full {
+        font-size: 0.64rem !important;
+      }
+    }
+
+    /* ------------------------------------------------------------------
+       STREAK, TRIAL NOTICE, MONTH IN REVIEW
+       ------------------------------------------------------------------ */
+    .streak-btn {
+      border-color: rgba(255, 183, 77, 0.45);
+      color: #ffe0b2;
+    }
+
+    .streak-btn.due {
+      border-color: rgba(69, 224, 255, 0.7);
+      color: #c9f6ff;
+      background: linear-gradient(120deg, #17303a, #121c26);
+    }
+
+    .trial-btn.ending {
+      border-color: rgba(255, 183, 77, 0.8);
+      color: #ffd59a;
+    }
+
+    .trial-notice {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(255, 183, 77, 0.08);
+      border: 1px solid rgba(255, 183, 77, 0.4);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+      color: #ffe6c2;
+    }
+
+    .trial-notice-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .review-modal {
+      max-width: 620px;
+    }
+
+    .review-tiles {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 4px 0 12px;
+    }
+
+    .review-tile {
+      background: linear-gradient(135deg, #181d2b, #141724);
+      border: 1px solid rgba(170, 202, 255, 0.25);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .rt-num {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #e7f4ff;
+    }
+
+    .rt-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8f96b5;
+      margin-top: 2px;
+    }
+
+    .review-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.86rem;
+    }
+
+    .review-list li {
+      padding-left: 14px;
+      position: relative;
+    }
+
+    .review-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #45e0ff;
+    }
+
+    .review-list b {
+      color: #e7f4ff;
+    }
+
+    .review-footer {
+      flex-wrap: wrap;
+    }
+
+    .review-note {
+      font-size: 0.76rem;
+      color: #ffd59a;
+    }
+
+    .review-link {
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    @media (max-width: 480px) {
+      .review-tiles {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .rt-num {
+        font-size: 1.2rem;
+      }
+      .onboarding-footer-right {
+        flex-wrap: wrap;
+      }
+    }
+
+    /* ------------------------------------------------------------------
+       PHONE LAYOUT: tab bar + one section at a time
+       ------------------------------------------------------------------ */
+    .tabbar,
+    .mini-metrics {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 6px 6px calc(74px + env(safe-area-inset-bottom));
+        align-items: flex-start;
+      }
+
+      .app {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      /* Header card sits on top on every tab */
+      .panel {
+        order: -1;
+        max-height: none;
+        overflow: visible;
+        padding: 10px 12px;
+      }
+
+      .panel-header {
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+
+      .panel-header-right {
+        justify-content: flex-start;
+        width: 100%;
+      }
+
+      .panel-header-right .header-btn {
+        padding: 5px 10px;
+        font-size: 0.74rem;
+      }
+
+      .mini-metrics {
+        display: flex;
+        gap: 12px;
+        margin-top: 4px;
+        font-size: 0.74rem;
+        color: #9da5c4;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .mini-metrics b {
+        color: #e6f5ff;
+        margin-left: 3px;
+      }
+
+      /* Show only the active tab's content */
+      .panel [data-section] {
+        display: none;
+      }
+
+      body[data-tab="field"] .panel [data-section="field"],
+      body[data-tab="analysis"] .panel [data-section="analysis"],
+      body[data-tab="history"] .panel [data-section="history"] {
+        display: block;
+      }
+
+      body:not([data-tab="board"]) .board {
+        display: none;
+      }
+
+      .footer-note {
+        display: none;
+      }
+
+      /* Board: bigger, thumb-friendly controls */
+      .board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .card {
+        padding: 12px 6px;
+      }
+
+      .ticks {
+        height: 130px;
+        font-size: 0.66rem;
+      }
+
+      .slider-vertical {
+        height: 130px;
+        width: 28px;
+      }
+
+      .slider-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+      }
+
+      .slider-buttons {
+        gap: 8px;
+      }
+
+      .value-label {
+        font-size: 0.85rem;
+      }
+
+      .state-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .ai-analysis {
+        max-height: none;
+        font-size: 0.84rem;
+      }
+
+      .panel pre,
+      .state-line {
+        font-size: 0.78rem;
+      }
+
+      #historyCanvas {
+        height: 220px;
+      }
+
+      .history-filters {
+        gap: 8px 12px;
+        font-size: 0.78rem;
+      }
+
+      .tabbar {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        background: rgba(8, 10, 16, 0.96);
+        border-top: 1px solid rgba(170, 202, 255, 0.16);
+        padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+        backdrop-filter: blur(8px);
+      }
+
+      .tab-btn {
+        flex: 1;
+        background: none;
+        border: none;
+        color: #7f87a6;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 6px 0;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+
+      .tab-btn svg {
+        width: 22px;
+        height: 22px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .tab-btn.active {
+        color: #45e0ff;
+        background: rgba(69, 224, 255, 0.08);
+      }
     }
   </style>
 </head>
-<body>
-  <!-- 30-DAY TRIAL OVERLAY -->
-  <div id="trialOverlay" class="trial-overlay hidden">
-    <div class="trial-modal">
-      <h2>StateBoard Trial Ended</h2>
-      <p>
-        The local 30-day StateBoard trial on this device has elapsed.
-      </p>
-      <p>
-        The board and history view are now locked behind this screen so you’re not quietly
-        building a lifetime workflow on an experimental cut of the tool.
-      </p>
-      <p class="trial-note">
-        <span class="trial-strong">If you’re the developer / author:</span>
-        you can clear this trial locally by resetting browser storage
-        (e.g. <code>localStorage</code>) and reloading, or by pointing the page at a new
-        build with whatever licensing / access pattern you actually want.
-      </p>
-    </div>
+<body data-tab="board">
+  <!-- PASSWORD LOCK SCREEN (covers everything until unlocked) -->
+  <div id="lockOverlay" class="lock-overlay hidden">
+    <form id="lockForm" class="lock-modal" autocomplete="on">
+      <h2 id="lockTitle">StateBoard</h2>
+      <p id="lockText">Enter your unlock code to open the board.</p>
+      <a id="buyBtn" class="btn-primary buy-btn" href="#" rel="noopener">Get lifetime access</a>
+      <p id="buyNote" class="buy-note"></p>
+      <div id="lockDivider" class="lock-divider"><span>Already purchased? Enter your unlock code</span></div>
+      <input id="lockInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Unlock code (SB-XXXX-XXXX-XXXX)" />
+      <label class="lock-remember">
+        <input id="lockRemember" type="checkbox" checked />
+        Keep me unlocked on this device
+      </label>
+      <div id="lockError" class="lock-error"></div>
+      <button type="submit" class="btn-secondary unlock-btn">Unlock</button>
+      <button type="button" id="lockBackBtn" class="lock-link">Back to my free trial</button>
+    </form>
   </div>
-  <!-- END TRIAL OVERLAY -->
+  <!-- END LOCK SCREEN -->
 
   <!-- ONBOARDING OVERLAY -->
   <div id="onboardingOverlay" class="onboarding-overlay hidden">
@@ -815,6 +1441,28 @@
   </div>
   <!-- END ONBOARDING OVERLAY -->
 
+  <!-- MONTH IN REVIEW -->
+  <div id="reviewOverlay" class="onboarding-overlay hidden">
+    <div class="onboarding-modal review-modal">
+      <div class="onboarding-header">
+        <div>
+          <div class="onboarding-title">Your Month in Review</div>
+          <div class="onboarding-subtitle" id="reviewSub"></div>
+        </div>
+      </div>
+      <div class="onboarding-body" id="reviewBody"></div>
+      <div class="onboarding-footer review-footer">
+        <div id="reviewFooterNote" class="review-note"></div>
+        <div class="onboarding-footer-right">
+          <a id="reviewBuyBtn" class="btn-primary review-link" href="#">Email to buy</a>
+          <button type="button" id="reviewCodeBtn" class="btn-secondary">Enter code</button>
+          <button type="button" id="reviewClose" class="btn-secondary">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- END MONTH IN REVIEW -->
+
   <div class="app">
     <!-- LEFT: Slider Board -->
     <div class="board" id="board"></div>
@@ -824,22 +1472,37 @@
       <div class="panel-header">
         <div class="panel-header-left">
           <h1>STATEBOARD</h1>
+          <div class="mini-metrics">
+            <span>Coherence <b id="miniCoh">—</b></span>
+            <span>Tension <b id="miniTen">—</b></span>
+          </div>
         </div>
         <div class="panel-header-right">
           <span id="timestamp">Last change: —</span>
-          <span id="trialBadge" class="trial-badge"></span>
+          <button type="button" id="streakBadge" class="header-btn streak-btn"></button>
+          <button type="button" id="accessBadge" class="header-btn trial-btn hidden-el"></button>
+          <button type="button" id="reviewBtn" class="header-btn">My Month</button>
           <button type="button" id="clearChaosBtn" class="header-btn">Clear Chaos</button>
           <button type="button" id="restartClockBtn" class="header-btn">Restart Clock</button>
+          <button type="button" id="lockBtn" class="header-btn hidden-el">Lock</button>
         </div>
       </div>
 
-      <div class="panel-section">
+      <div id="trialNotice" class="trial-notice hidden-el">
+        <span id="trialNoticeText"></span>
+        <div class="trial-notice-actions">
+          <button type="button" id="trialNoticeUnlock" class="header-btn">Unlock</button>
+          <button type="button" id="trialNoticeDismiss" class="header-btn">Got it</button>
+        </div>
+      </div>
+
+      <div class="panel-section" data-section="field">
         <div class="state-header">
           <div class="panel-section-title">Unified Consciousness Field Board</div>
         </div>
       </div>
 
-      <div class="panel-section">
+      <div class="panel-section" data-section="field">
         <div class="state-header">
           <div class="panel-section-title">State Vector</div>
           <div class="state-label-line">
@@ -849,17 +1512,22 @@
         <div id="stateGrid" class="state-grid"></div>
       </div>
 
-      <div class="panel-section">
+      <div class="panel-section" data-section="field">
         <div class="panel-section-title">
-          Unified Consciousness Field (working form)
+          Unified Consciousness Field (complete working form)
         </div>
-        <pre>i ∂ψ/∂t (t, z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> ψ(t, z)
-            + ( λ / |z|² ) ψ(t, z)
-            + μ ψ*(t, 1/z)
-∇<sub>z</sub> = ∂/∂z + A<sub>z</sub>(z, z̄)</pre>
+        <pre class="eq-full">i ∂Ψ/∂t (t,z) = − D ∇<sub>z</sub>† ∇<sub>z</sub> Ψ + (λ/|z|²) Ψ + μ Ψ*(t, 1/z)
+              + γ ∫ K(t−τ) Ψ(τ,z) dτ − i v<sub>A</sub>(z)·∇<sub>z</sub> Ψ
+              + Σ<sub>n</sub> κ<sub>n</sub> O<sub>n</sub>(z) Ψ − i Γ(z) Ψ + η(t,z)
+
+∇<sub>z</sub> = ∂/∂z + A<sub>z</sub>(z, z̄, t)
+∫|Ψ|² dμ + ∫|Ψ<sub>c</sub>|² dμ = 1,   Ψ<sub>c</sub> ≡ Ψ*(t, 1/z)
+K(Δt) = κ₀e<sup>−αΔt</sup> + κ₁cos(ωΔt)e<sup>−βΔt</sup>
+Ψ<sub>future</sub> = α(t<sub>c</sub>) Ψ<sub>old</sub> + (1 − α(t<sub>c</sub>)) Ψ<sub>new</sub>,   α = e<sup>−βΔt<sub>c</sub></sup>·S
+D(t⁺) = D(t⁻)(1 + c(1 − S))   κ<sub>n</sub>(t⁺) = κ<sub>n</sub>(t⁻) + r(S<sub>n</sub> − κ<sub>n</sub>)   Γ = d/dt |Ψ<sub>c</sub>|²</pre>
       </div>
 
-      <div class="panel-section">
+      <div class="panel-section" data-section="field">
         <div class="panel-section-title">Current Parameters from Board</div>
         <div id="parameters" class="state-line"></div>
         <div class="metrics-row">
@@ -876,25 +1544,44 @@
             <span class="value" id="dVal">—</span>
           </div>
           <div class="pill">
-            <span class="label">λ</span>
+            <span class="label greek">λ</span>
             <span class="value" id="lambdaVal">—</span>
           </div>
           <div class="pill">
-            <span class="label">μ</span>
+            <span class="label greek">μ</span>
             <span class="value" id="muVal">—</span>
           </div>
         </div>
       </div>
 
-      <div class="panel-section">
-        <div class="panel-section-title">Field Analysis</div>
-        <div id="ai-analysis" class="state-line ai-analysis">
-          Adjust the board to get a live reading of how coherent, intense, and
-          reconfiguring your current field is.
+      <div class="panel-section" data-section="field">
+        <div class="panel-section-title">Adaptive Loop (learns from your check-ins)</div>
+        <div id="ucfStatus" class="ucf-status"></div>
+        <div class="unity">
+          <div class="unity-bar"><span id="unityPsi"></span></div>
+          <div id="unityLabel" class="unity-label"></div>
         </div>
+        <div class="metrics-row">
+          <div class="pill" title="Survival score: how well the last forecast matched your actual check-in"><span class="label">S</span><span class="value" id="ucfS">—</span></div>
+          <div class="pill" title="Memory inertia: how closely today matches your kernel-weighted past"><span class="label greek">γ</span><span class="value" id="ucfGamma">—</span></div>
+          <div class="pill" title="Drift: how fast you're moving away from your recent pattern"><span class="label greek">|v<sub>A</sub>|</span><span class="value" id="ucfV">—</span></div>
+          <div class="pill" title="Aliasing rate: + means the model is missing more, − means it's learning you"><span class="label greek">Γ</span><span class="value" id="ucfBigGamma">—</span></div>
+          <div class="pill" title="Unmodeled influence: typical size of forecast misses"><span class="label greek">η</span><span class="value" id="ucfEta">—</span></div>
+          <div class="pill" title="Weight given to the old forecast when fusing with the new one"><span class="label greek">α</span><span class="value" id="ucfAlpha">—</span></div>
+          <div class="pill" title="Uncertainty cone multiplier applied to D"><span class="label">Cone</span><span class="value" id="ucfCone">—</span></div>
+        </div>
+        <div class="ucf-sub">Basis coupling <span class="greek">κ<sub>n</sub></span>: how predictable each area is for you</div>
+        <div id="kappaGrid" class="kappa-grid"></div>
+        <div class="ucf-sub">Next check-in forecast</div>
+        <div id="forecastLine" class="ucf-forecast"></div>
       </div>
 
-      <div class="panel-section">
+      <div class="panel-section" data-section="analysis">
+        <div class="panel-section-title">Field Analysis</div>
+        <div id="ai-analysis" class="ai-analysis"></div>
+      </div>
+
+      <div class="panel-section" data-section="history">
         <div class="history-header-row">
           <div class="panel-section-title">Field History</div>
           <div class="history-window">
@@ -921,7 +1608,388 @@
     </div>
   </div>
 
+  <!-- PHONE TAB BAR (only shows on small screens) -->
+  <nav class="tabbar" id="tabbar" aria-label="Sections">
+    <button type="button" class="tab-btn" data-tab="board">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v16M12 4v16M18 4v16"/><circle cx="6" cy="14" r="2"/><circle cx="12" cy="8" r="2"/><circle cx="18" cy="12" r="2"/></svg>
+      <span>Board</span>
+    </button>
+    <button type="button" class="tab-btn" data-tab="field">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c2-6 4-6 6 0s4 6 6 0 4-6 6 0"/></svg>
+      <span>Field</span>
+    </button>
+    <button type="button" class="tab-btn" data-tab="analysis">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Reading</span>
+    </button>
+    <button type="button" class="tab-btn" data-tab="history">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18l5-6 4 3 5-8 4 5"/></svg>
+      <span>History</span>
+    </button>
+  </nav>
+
   <script>
+    // -------------------------------------------------------------------------
+    //  PASSWORD LOCK
+    //  The real password is never stored in this file — only its fingerprint
+    //  (a SHA-256 hash). Unlocking never expires; only the Lock button
+    //  (or clearing browser data) locks the board again.
+    // -------------------------------------------------------------------------
+    const PASSWORD_SALT = "stateboard-v1::";
+    const PASSWORD_HASH = "a40483f834aa6c8a738132a129a75c8809686f0f46624d3fe9555994a3e22189";
+    const UNLOCK_KEY = "stateBoardUnlock_v1";
+    const MANUAL_LOCK_KEY = "stateBoardManualLock_v1";
+
+    // -------------------------------------------------------------------------
+    //  FREE TRIAL + PURCHASE
+    // -------------------------------------------------------------------------
+    const TRIAL_DAYS = 30;
+    const TRIAL_START_KEY = "stateBoardTrialStart_v2";
+    const DAY_MS = 24 * 60 * 60 * 1000;
+
+    // Buying = emailing you. The button opens a pre-written email.
+    const PURCHASE_EMAIL = "info@thirdmotionstudios.com";
+    const BUY_URL =
+      "mailto:" + PURCHASE_EMAIL +
+      "?subject=" + encodeURIComponent("StateBoard lifetime access") +
+      "&body=" + encodeURIComponent(
+        "Hi,\n\nI'd like to buy lifetime access to StateBoard.\n\nMy name: \n\nThanks!"
+      );
+    const BUY_LABEL = "Email to buy lifetime access";
+
+    // -------------------------------------------------------------------------
+    //  PERSONAL UNLOCK CODES (made with the StateBoard Key Maker)
+    //  Each code looks like SB-XXXX-XXXX-XXXX. The last 4 characters are a
+    //  checksum signed with this secret, so only the Key Maker can make
+    //  codes that work. Keep CODE_SECRET identical in both files.
+    // -------------------------------------------------------------------------
+    const CODE_SECRET = "a2791555122c562056ac4426f421e34ad441fbfceeab19be";
+    const CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+
+    function codeChecksum(body) {
+      const h = sha256Hex(CODE_SECRET + "::" + body);
+      const val = parseInt(h.slice(0, 5), 16); // 20 bits
+      let out = "";
+      for (let i = 0; i < 4; i++) {
+        out += CODE_ALPHABET[(val >> (15 - 5 * i)) & 31];
+      }
+      return out;
+    }
+
+    function normalizeCode(input) {
+      let s = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (s.length === 14 && s.startsWith("SB")) s = s.slice(2);
+      return s;
+    }
+
+    function isValidCode(input) {
+      const s = normalizeCode(input);
+      if (s.length !== 12) return false;
+      for (const ch of s) if (!CODE_ALPHABET.includes(ch)) return false;
+      return codeChecksum(s.slice(0, 8)) === s.slice(8);
+    }
+
+    function sha256Hex(str) {
+      const rr = (v, n) => (v >>> n) | (v << (32 - n));
+      const K = [], H = [];
+      let num = 2, count = 0;
+      while (count < 64) {
+        let prime = true;
+        for (let d = 2; d * d <= num; d++) if (num % d === 0) { prime = false; break; }
+        if (prime) {
+          if (count < 8) H[count] = (Math.pow(num, 1 / 2) * 4294967296) | 0;
+          K[count] = (Math.pow(num, 1 / 3) * 4294967296) | 0;
+          count++;
+        }
+        num++;
+      }
+      const bytes = Array.from(new TextEncoder().encode(str));
+      const bitLen = bytes.length * 8;
+      bytes.push(0x80);
+      while (bytes.length % 64 !== 56) bytes.push(0);
+      const hi = Math.floor(bitLen / 4294967296), lo = bitLen >>> 0;
+      bytes.push((hi >>> 24) & 255, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255,
+                 (lo >>> 24) & 255, (lo >>> 16) & 255, (lo >>> 8) & 255, lo & 255);
+      for (let i = 0; i < bytes.length; i += 64) {
+        const w = new Array(64);
+        for (let j = 0; j < 16; j++) {
+          w[j] = (bytes[i + 4 * j] << 24) | (bytes[i + 4 * j + 1] << 16) |
+                 (bytes[i + 4 * j + 2] << 8) | bytes[i + 4 * j + 3];
+        }
+        for (let j = 16; j < 64; j++) {
+          const s0 = rr(w[j - 15], 7) ^ rr(w[j - 15], 18) ^ (w[j - 15] >>> 3);
+          const s1 = rr(w[j - 2], 17) ^ rr(w[j - 2], 19) ^ (w[j - 2] >>> 10);
+          w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;
+        }
+        let [a, b, c, d, e, f, g, h] = H;
+        for (let j = 0; j < 64; j++) {
+          const S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25);
+          const ch = (e & f) ^ (~e & g);
+          const t1 = (h + S1 + ch + K[j] + w[j]) | 0;
+          const S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22);
+          const maj = (a & b) ^ (a & c) ^ (b & c);
+          const t2 = (S0 + maj) | 0;
+          h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+        }
+        H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+        H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+      }
+      return H.map(x => (x >>> 0).toString(16).padStart(8, "0")).join("");
+    }
+
+    function sessionGet(key) {
+      try { return sessionStorage.getItem(key); } catch { return null; }
+    }
+
+    function sessionSet(key, value) {
+      try { sessionStorage.setItem(key, value); } catch { /* ignore */ }
+    }
+
+    function isPaid() {
+      return safeGet(UNLOCK_KEY) === PASSWORD_HASH || sessionGet(UNLOCK_KEY) === PASSWORD_HASH;
+    }
+
+    function isManuallyLocked() {
+      return safeGet(MANUAL_LOCK_KEY) === "1";
+    }
+
+    // The trial clock starts the first time this device opens StateBoard.
+    function getTrialStart() {
+      const raw = Number(safeGet(TRIAL_START_KEY));
+      if (Number.isFinite(raw) && raw > 0 && raw <= Date.now()) return raw;
+      const now = Date.now();
+      safeSet(TRIAL_START_KEY, String(now));
+      return now;
+    }
+
+    function trialMsLeft() {
+      return getTrialStart() + TRIAL_DAYS * DAY_MS - Date.now();
+    }
+
+    function isTrialActive() {
+      return trialMsLeft() > 0;
+    }
+
+    // Who gets to see the board right now?
+    function hasAccess() {
+      if (isPaid()) return true;
+      if (isManuallyLocked()) return false;
+      return isTrialActive();
+    }
+
+    let lockMode = null; // "expired" | "enter" | "locked" | null (board open)
+
+    function showLock(mode) {
+      const overlay = document.getElementById("lockOverlay");
+      const title = document.getElementById("lockTitle");
+      const text = document.getElementById("lockText");
+      const buyBtn = document.getElementById("buyBtn");
+      const divider = document.getElementById("lockDivider");
+      const backBtn = document.getElementById("lockBackBtn");
+      const input = document.getElementById("lockInput");
+      const errorEl = document.getElementById("lockError");
+      if (!overlay) return;
+
+      lockMode = mode;
+
+      if (mode === "expired") {
+        title.textContent = "Your free trial has ended";
+        text.textContent =
+          "Your " + TRIAL_DAYS + " days with StateBoard are up. Get lifetime access to keep going. " +
+          "Everything you've logged is saved on this device and will be right here when you unlock.";
+      } else if (mode === "enter") {
+        const days = Math.max(1, Math.ceil(trialMsLeft() / DAY_MS));
+        title.textContent = "Unlock StateBoard";
+        text.textContent =
+          "You have " + days + " day" + (days === 1 ? "" : "s") + " left in your free trial. " +
+          "Get lifetime access now, or enter your unlock code if you've already purchased.";
+      } else {
+        title.textContent = "StateBoard is locked";
+        text.textContent = "Enter your unlock code to open the board.";
+      }
+
+      const showBuy = mode !== "locked";
+      buyBtn.classList.toggle("hidden-el", !showBuy);
+      divider.classList.toggle("hidden-el", !showBuy);
+      backBtn.classList.toggle("hidden-el", mode !== "enter");
+
+      if (errorEl) errorEl.textContent = "";
+      if (input) input.value = "";
+      overlay.classList.remove("hidden");
+      if (input) setTimeout(() => input.focus(), 50);
+    }
+
+    function hideLock() {
+      const overlay = document.getElementById("lockOverlay");
+      if (overlay) overlay.classList.add("hidden");
+      lockMode = null;
+      resizeCanvas();
+      renderHistory();
+    }
+
+    // Header badge: trial countdown (tap to unlock) or Lock button once paid.
+    function updateAccessUI() {
+      const badge = document.getElementById("accessBadge");
+      const lockBtn = document.getElementById("lockBtn");
+      const paid = isPaid();
+
+      if (lockBtn) lockBtn.classList.toggle("hidden-el", !paid);
+
+      if (badge) {
+        if (paid || !isTrialActive()) {
+          badge.classList.add("hidden-el");
+        } else {
+          const days = Math.max(1, Math.ceil(trialMsLeft() / DAY_MS));
+          badge.textContent = "Trial: " + days + " day" + (days === 1 ? "" : "s") + " left · Unlock";
+          badge.classList.remove("hidden-el");
+        }
+      }
+    }
+
+    // Runs every tick: if the trial runs out while the page is open, lock it.
+    function checkAccess() {
+      if (lockMode === null && !hasAccess()) {
+        showLock(isManuallyLocked() ? "locked" : "expired");
+      }
+      updateAccessUI();
+      updateTrialNotice();
+      updateStreakUI();
+      maybeAutoReview();
+    }
+
+    function initStreakAndNotice() {
+      const streakBtn = document.getElementById("streakBadge");
+      if (streakBtn) {
+        streakBtn.addEventListener("click", () => markCheckin(Date.now()));
+      }
+      const unlockBtn = document.getElementById("trialNoticeUnlock");
+      if (unlockBtn) unlockBtn.addEventListener("click", () => showLock("enter"));
+      const dismissBtn = document.getElementById("trialNoticeDismiss");
+      if (dismissBtn) {
+        dismissBtn.addEventListener("click", () => {
+          safeSet(NOTICE_DISMISS_KEY, dayKey(Date.now()));
+          updateTrialNotice();
+        });
+      }
+      updateStreakUI();
+      updateTrialNotice();
+    }
+
+    function initAccess() {
+      const form = document.getElementById("lockForm");
+      const input = document.getElementById("lockInput");
+      const remember = document.getElementById("lockRemember");
+      const errorEl = document.getElementById("lockError");
+      const lockBtn = document.getElementById("lockBtn");
+      const badge = document.getElementById("accessBadge");
+      const backBtn = document.getElementById("lockBackBtn");
+      const buyBtn = document.getElementById("buyBtn");
+
+      getTrialStart(); // start the clock on first visit
+
+      const buyNote = document.getElementById("buyNote");
+      if (buyNote) {
+        buyNote.innerHTML = "";
+        buyNote.append("Or email ");
+        const b = document.createElement("b");
+        b.textContent = PURCHASE_EMAIL;
+        buyNote.append(b);
+        buyNote.append(". You'll get a personal unlock code once payment is confirmed.");
+      }
+
+      if (buyBtn) {
+        if (BUY_URL) {
+          buyBtn.href = BUY_URL;
+          buyBtn.textContent = BUY_LABEL;
+          if (BUY_URL.startsWith("http")) buyBtn.target = "_blank";
+          else buyBtn.removeAttribute("target");
+        } else {
+          buyBtn.removeAttribute("href");
+          buyBtn.classList.add("disabled");
+          buyBtn.textContent = "Purchase link coming soon";
+        }
+      }
+
+      if (form && input) {
+        form.addEventListener("submit", (ev) => {
+          ev.preventDefault();
+          const isOwner = sha256Hex(PASSWORD_SALT + input.value) === PASSWORD_HASH;
+          if (isOwner || isValidCode(input.value)) {
+            if (remember && remember.checked) safeSet(UNLOCK_KEY, PASSWORD_HASH);
+            sessionSet(UNLOCK_KEY, PASSWORD_HASH);
+            try { localStorage.removeItem(MANUAL_LOCK_KEY); } catch { /* ignore */ }
+            input.value = "";
+            if (errorEl) errorEl.textContent = "";
+            hideLock();
+            updateAccessUI();
+          } else {
+            if (errorEl) errorEl.textContent = "That code didn't work. Check for typos and try again.";
+            input.value = "";
+            form.classList.remove("shake");
+            void form.offsetWidth; // restart the shake animation
+            form.classList.add("shake");
+            input.focus();
+          }
+        });
+      }
+
+      if (backBtn) {
+        backBtn.addEventListener("click", () => {
+          if (hasAccess()) hideLock();
+        });
+      }
+
+      if (badge) {
+        badge.addEventListener("click", () => showLock("enter"));
+      }
+
+      if (lockBtn) {
+        lockBtn.addEventListener("click", () => {
+          try { localStorage.removeItem(UNLOCK_KEY); } catch { /* ignore */ }
+          try { sessionStorage.removeItem(UNLOCK_KEY); } catch { /* ignore */ }
+          safeSet(MANUAL_LOCK_KEY, "1");
+          updateAccessUI();
+          showLock("locked");
+        });
+      }
+
+      if (hasAccess()) {
+        lockMode = null;
+      } else {
+        showLock(isManuallyLocked() ? "locked" : "expired");
+      }
+      updateAccessUI();
+    }
+
+    // -------------------------------------------------------------------------
+    //  PHONE TABS
+    // -------------------------------------------------------------------------
+    const TAB_KEY = "stateBoardTab_v1";
+    const TAB_NAMES = ["board", "field", "analysis", "history"];
+
+    function setTab(name) {
+      if (!TAB_NAMES.includes(name)) name = "board";
+      document.body.dataset.tab = name;
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.tab === name);
+      });
+      safeSet(TAB_KEY, name);
+      window.scrollTo(0, 0);
+      if (name === "history") {
+        requestAnimationFrame(() => {
+          resizeCanvas();
+          renderHistory();
+        });
+      }
+    }
+
+    function initTabs() {
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => setTab(btn.dataset.tab));
+      });
+      setTab(safeGet(TAB_KEY) || "board");
+    }
+
     // -------------------------------------------------------------------------
     //  DIMENSIONS
     // -------------------------------------------------------------------------
@@ -939,47 +2007,36 @@
       { id: "chaosLoad", label: "Chaos Load" },
       { id: "longTermTrajectory", label: "Long-term Trajectory" }
     ];
+    const DIM_IDS = dimensions.map(d => d.id);
+
+    // Fixed color per dimension (so a line keeps its color when you toggle others)
+    const DIM_COLORS = {
+      energy: "#4dd0e1",
+      focus: "#ffb74d",
+      money: "#ce93d8",
+      relationships: "#81c784",
+      creativeOutput: "#f06292",
+      skillGrowth: "#64b5f6",
+      health: "#ba68c8",
+      environment: "#ff8a65",
+      socialPresence: "#4db6ac",
+      opportunities: "#fff176",
+      chaosLoad: "#e57373",
+      longTermTrajectory: "#90a4ae"
+    };
 
     const STORAGE_HISTORY_KEY = "fieldBoardHistory_v1";
     const STORAGE_LAST_STATE_KEY = "fieldBoardLastState_v1";
     const STORAGE_LAST_TIME_KEY = "fieldBoardLastTime_v1";
     const ONBOARDING_FLAG_KEY = "fieldBoardOnboardingSeen_v1";
 
-    // Trial keys
-    const TRIAL_START_KEY = "stateBoardTrialStart_v1";
-    const TRIAL_LENGTH_MS = 30 * 24 * 60 * 60 * 1000; // 30 days in ms
-
-    let stateHistory = [];
-    let lastTimestampMs = null;
-
-    // Smoothed state for behavioral smoothing
-    let smoothedState = null;
-    let lastSmoothedTime = null;
-
-    // For derivative / change detection in AI analysis
-    let lastAnalysisState = null;
-    let lastAnalysisParams = null;
-
-    // Lagged state used ONLY for trajectory tension relief (money/health/relationships/environment)
-    let tensionLagState = null;
-
-    let boardEl,
-      stateGridEl,
-      paramsEl,
-      coherenceEl,
-      tensionEl,
-      dValEl,
-      lambdaValEl,
-      muValEl,
-      timestampEl,
-      aiAnalysisEl,
-      historyCanvas,
-      historyCtx,
-      windowSelectEl,
-      historyFiltersEl,
-      clearChaosBtn,
-      restartClockBtn,
-      trialBadgeEl;
+    // Timing
+    const TICK_MS = 1000;                 // how often the field re-reads itself
+    const SMOOTH_TAU_SEC = 20;            // how fast readings follow the sliders
+    const TENSION_LAG_TAU_SEC = 600;      // how slowly money/health/relationships/environment relieve tension
+    const MOVER_WINDOW_SEC = 120;         // "movement" = change over the last 2 minutes
+    const COALESCE_MS = 3000;             // rapid clicks within 3s are merged into one history point
+    const MAX_HISTORY = 20000;
 
     const WINDOW_MS = {
       "5m": 5 * 60 * 1000,
@@ -992,8 +2049,20 @@
       "1Y": 365 * 24 * 60 * 60 * 1000
     };
 
+    let stateHistory = [];        // [{ t, state }]
+    let rawState = null;          // exactly what the sliders say
+    let smoothedState = null;     // what the field "feels" (follows rawState over time)
+    let tensionLagState = null;   // very slow version, used only for tension relief
+    let snapshotBuffer = [];      // recent smoothed states, for the MOVEMENT line
+    let lastTickTime = null;
+    let lastChangeTime = null;
+
     let activeWindowKey = "10m";
-    const activeDimensions = new Set(dimensions.map(d => d.id)); // default all on
+    const activeDimensions = new Set(DIM_IDS);
+
+    let boardEl, stateGridEl, paramsEl, coherenceEl, tensionEl, dValEl,
+      lambdaValEl, muValEl, timestampEl, aiAnalysisEl, historyCanvas,
+      historyCtx, windowSelectEl, historyFiltersEl, clearChaosBtn, restartClockBtn;
 
     document.addEventListener("DOMContentLoaded", () => {
       boardEl = document.getElementById("board");
@@ -1012,75 +2081,116 @@
       historyFiltersEl = document.getElementById("historyFilters");
       clearChaosBtn = document.getElementById("clearChaosBtn");
       restartClockBtn = document.getElementById("restartClockBtn");
-      trialBadgeEl = document.getElementById("trialBadge");
 
-      // Trial gate must run first; if expired, overlay blocks the rest visually.
-      initTrialGate();
-
+      initAccess();
+      initTabs();
       buildSliderCards();
       buildStatePills();
       buildHistoryFilters();
-      loadFromStorageOrDefaults();
       attachListeners();
-      initOnboarding();
       resizeCanvas();
-      renderHistory();
+      loadFromStorageOrDefaults();
+      backfillCheckins();
+      initStreakAndNotice();
+      initReview();
+      initOnboarding();
+      tick();
 
-      // Real-time redraw so history line doesn't vanish when you're not touching sliders
-      setInterval(renderHistory, 1000);
+      // The field keeps evolving even when you're not touching anything.
+      setInterval(tick, TICK_MS);
     });
 
     // -------------------------------------------------------------------------
-    //  TRIAL LOGIC (LOCAL 30-DAY TIMER)
+    //  SAFE STORAGE HELPERS
     // -------------------------------------------------------------------------
-    function initTrialGate() {
-      const overlay = document.getElementById("trialOverlay");
-      if (!overlay) return;
 
-      const now = Date.now();
-      let start = null;
+    function safeGet(key) {
+      try { return localStorage.getItem(key); } catch { return null; }
+    }
 
-      try {
-        const raw = localStorage.getItem(TRIAL_START_KEY);
-        if (raw) {
-          const parsed = Number(raw);
-          if (!Number.isNaN(parsed)) {
-            start = parsed;
-          }
+    function safeSet(key, value) {
+      try { localStorage.setItem(key, value); return true; } catch { return false; }
+    }
+
+    // Compact format: each point is [t, v1, v2, ... v12] instead of a big object.
+    function encodeHistory(history) {
+      return JSON.stringify(
+        history.map(p => [p.t, ...DIM_IDS.map(id => p.state[id] ?? 0)])
+      );
+    }
+
+    // Reads both the new compact format and the old { t, state } format.
+    function decodeHistory(raw) {
+      let parsed;
+      try { parsed = JSON.parse(raw); } catch { return []; }
+      if (!Array.isArray(parsed)) return [];
+      const out = [];
+      for (const p of parsed) {
+        const state = {};
+        let t;
+        if (Array.isArray(p) && p.length >= 1 + DIM_IDS.length) {
+          t = Number(p[0]);
+          DIM_IDS.forEach((id, i) => { state[id] = clampInt(p[i + 1]); });
+        } else if (p && typeof p === "object" && p.state) {
+          t = Number(p.t);
+          DIM_IDS.forEach(id => { state[id] = clampInt(p.state[id]); });
+        } else {
+          continue;
         }
-      } catch {
-        // ignore read errors
+        if (Number.isFinite(t)) out.push({ t, state });
       }
+      out.sort((a, b) => a.t - b.t);
+      return out;
+    }
 
-      if (start == null) {
-        // First visit on this device: set the clock but don't block.
-        try {
-          localStorage.setItem(TRIAL_START_KEY, String(now));
-        } catch {
-          // ignore storage errors
-        }
-        updateTrialBadge(now, now);
-        return;
+    function clampInt(v) {
+      const n = Math.round(Number(v));
+      if (!Number.isFinite(n)) return 0;
+      return Math.min(5, Math.max(0, n));
+    }
+
+    function persistHistory() {
+      if (stateHistory.length > MAX_HISTORY) {
+        stateHistory = stateHistory.slice(stateHistory.length - MAX_HISTORY);
       }
-
-      const elapsed = now - start;
-      if (elapsed >= TRIAL_LENGTH_MS) {
-        // Trial over: show full overlay, no dismiss, no keys.
-        overlay.classList.remove("hidden");
-        if (trialBadgeEl) {
-          trialBadgeEl.textContent = "Trial: expired";
-        }
-      } else {
-        updateTrialBadge(now, start);
+      if (!safeSet(STORAGE_HISTORY_KEY, encodeHistory(stateHistory))) {
+        // Storage full: keep the newest half and try again.
+        stateHistory = stateHistory.slice(Math.floor(stateHistory.length / 2));
+        safeSet(STORAGE_HISTORY_KEY, encodeHistory(stateHistory));
       }
     }
 
-    function updateTrialBadge(now, start) {
-      if (!trialBadgeEl) return;
-      const remaining = TRIAL_LENGTH_MS - (now - start);
-      const daysLeft = Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
-      trialBadgeEl.textContent =
-        "Trial: " + daysLeft + " day" + (daysLeft === 1 ? "" : "s") + " left";
+    function persistLast(state, t) {
+      safeSet(STORAGE_LAST_STATE_KEY, JSON.stringify(state));
+      safeSet(STORAGE_LAST_TIME_KEY, String(t));
+    }
+
+    function statesEqual(a, b) {
+      return DIM_IDS.every(id => (a[id] ?? 0) === (b[id] ?? 0));
+    }
+
+    // Adds a point to history. Rapid changes are merged, and a "hold" point is
+    // inserted so the graph shows a step at the moment of change instead of a
+    // slow fake slope from the previous point.
+    function recordState(state, t) {
+      const last = stateHistory[stateHistory.length - 1];
+
+      if (last && statesEqual(last.state, state)) return;
+
+      if (last && t - last.t < COALESCE_MS && stateHistory.length > 1) {
+        last.t = t;
+        last.state = { ...state };
+        return;
+      }
+
+      if (last) {
+        const gap = t - last.t;
+        const holdT = t - Math.min(2000, gap / 2);
+        if (holdT > last.t) {
+          stateHistory.push({ t: holdT, state: { ...last.state } });
+        }
+      }
+      stateHistory.push({ t, state: { ...state } });
     }
 
     // -------------------------------------------------------------------------
@@ -1117,6 +2227,7 @@
         slider.value = "3";
         slider.id = dim.id;
         slider.className = "slider-vertical";
+        slider.setAttribute("aria-label", dim.label);
 
         const buttons = document.createElement("div");
         buttons.className = "slider-buttons";
@@ -1183,12 +2294,19 @@
         cb.type = "checkbox";
         cb.checked = true;
         cb.value = dim.id;
+        cb.style.accentColor = DIM_COLORS[dim.id];
         cb.addEventListener("change", () => {
           if (cb.checked) activeDimensions.add(dim.id);
           else activeDimensions.delete(dim.id);
           renderHistory();
         });
+
+        const swatch = document.createElement("span");
+        swatch.className = "swatch";
+        swatch.style.background = DIM_COLORS[dim.id];
+
         label.appendChild(cb);
+        label.appendChild(swatch);
         label.appendChild(document.createTextNode(dim.label));
         historyFiltersEl.appendChild(label);
       });
@@ -1202,13 +2320,11 @@
       const overlay = document.getElementById("onboardingOverlay");
       if (!overlay) return;
 
-      const seenFlag = localStorage.getItem(ONBOARDING_FLAG_KEY);
-      if (seenFlag === "1") {
+      if (safeGet(ONBOARDING_FLAG_KEY) === "1") {
         overlay.classList.add("hidden");
         return;
       }
 
-      // Show on first load
       overlay.classList.remove("hidden");
 
       const applyBtn = document.getElementById("onboard-apply");
@@ -1217,39 +2333,39 @@
 
       function hideOverlay() {
         overlay.classList.add("hidden");
-        try {
-          if (dontShowAgainCb && dontShowAgainCb.checked) {
-            localStorage.setItem(ONBOARDING_FLAG_KEY, "1");
-          }
-        } catch {
-          // ignore
+        if (dontShowAgainCb && dontShowAgainCb.checked) {
+          safeSet(ONBOARDING_FLAG_KEY, "1");
         }
       }
 
       if (skipBtn) {
-        skipBtn.addEventListener("click", () => {
-          hideOverlay();
-        });
+        skipBtn.addEventListener("click", hideOverlay);
       }
 
       if (applyBtn) {
         applyBtn.addEventListener("click", () => {
           dimensions.forEach((dim) => {
-            const inputId = "onboard-" + dim.id;
-            const inputEl = document.getElementById(inputId);
+            const inputEl = document.getElementById("onboard-" + dim.id);
             if (!inputEl) return;
             const raw = inputEl.value.trim();
             if (raw === "") return;
             const v = parseInt(raw, 10);
             if (Number.isNaN(v)) return;
-            const clamped = Math.min(5, Math.max(0, v));
             const slider = document.getElementById(dim.id);
-            if (slider) slider.value = String(clamped);
+            if (slider) slider.value = String(clampInt(v));
           });
 
-          const state = getStateVector();
+          // Onboarding is a calibration: the field jumps straight to it.
           const now = Date.now();
-          updateUI(state, now, { persist: true });
+          rawState = getStateVector();
+          lastChangeTime = now;
+          snapTo(rawState, now);
+          recordState(rawState, now);
+          persistHistory();
+          persistLast(rawState, now);
+          markCheckin(now);
+          renderRawLabels();
+          tick();
 
           hideOverlay();
         });
@@ -1257,72 +2373,47 @@
     }
 
     // -------------------------------------------------------------------------
-    //  STORAGE
+    //  LOAD
     // -------------------------------------------------------------------------
 
     function loadFromStorageOrDefaults() {
-      try {
-        const raw = localStorage.getItem(STORAGE_HISTORY_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) stateHistory = parsed;
-        }
-      } catch {
-        stateHistory = [];
-      }
+      const rawHistory = safeGet(STORAGE_HISTORY_KEY);
+      stateHistory = rawHistory ? decodeHistory(rawHistory) : [];
 
       let lastState = null;
-      try {
-        const rawState = localStorage.getItem(STORAGE_LAST_STATE_KEY);
-        if (rawState) {
-          const parsed = JSON.parse(rawState);
-          if (parsed && typeof parsed === "object") lastState = parsed;
+      const rawLast = safeGet(STORAGE_LAST_STATE_KEY);
+      if (rawLast) {
+        try {
+          const parsed = JSON.parse(rawLast);
+          if (parsed && typeof parsed === "object") {
+            lastState = {};
+            DIM_IDS.forEach(id => { lastState[id] = clampInt(parsed[id] ?? 3); });
+          }
+        } catch {
+          lastState = null;
         }
-      } catch {
-        lastState = null;
       }
 
-      const rawTime = localStorage.getItem(STORAGE_LAST_TIME_KEY);
-      if (rawTime) {
-        const t = Number(rawTime);
-        if (!Number.isNaN(t)) lastTimestampMs = t;
-      }
+      const rawTime = Number(safeGet(STORAGE_LAST_TIME_KEY));
+      lastChangeTime = Number.isFinite(rawTime) && rawTime > 0 ? rawTime : null;
+
+      const now = Date.now();
 
       if (lastState) {
         applyStateToSliders(lastState);
-        const ts = lastTimestampMs ?? Date.now();
-        updateUI(lastState, ts, { persist: false });
+        rawState = { ...lastState };
       } else {
-        const state = getStateVector();
-        const now = Date.now();
-        updateUI(state, now, { persist: true });
-      }
-    }
-
-    function saveToStorage(state, timestampMs) {
-      stateHistory.push({ t: timestampMs, state });
-
-      // Keep a big rolling history instead of amputating time at 600 points.
-      // localStorage still has limits, so this keeps the most recent 25,000 points.
-      if (stateHistory.length > 25000) {
-        stateHistory = stateHistory.slice(stateHistory.length - 25000);
+        rawState = getStateVector();
+        lastChangeTime = now;
+        recordState(rawState, now);
+        persistLast(rawState, now);
       }
 
-      try {
-        localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
-        localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(state));
-        localStorage.setItem(STORAGE_LAST_TIME_KEY, String(timestampMs));
-      } catch {
-        // If storage chokes, keep the newest data instead of crashing.
-        stateHistory = stateHistory.slice(Math.max(0, stateHistory.length - 8000));
-        try {
-          localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
-          localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(state));
-          localStorage.setItem(STORAGE_LAST_TIME_KEY, String(timestampMs));
-        } catch {
-          // ignore storage errors
-        }
-      }
+      // Re-save so old-format history is converted to the compact format.
+      persistHistory();
+
+      snapTo(rawState, now);
+      renderRawLabels();
     }
 
     // -------------------------------------------------------------------------
@@ -1333,24 +2424,22 @@
       dimensions.forEach((dim) => {
         const slider = document.getElementById(dim.id);
         if (!slider) return;
-        slider.addEventListener("input", () => handleSliderChange());
+        // While dragging: update live. On release: save to history.
+        slider.addEventListener("input", () => onBoardChange(false));
+        slider.addEventListener("change", () => onBoardChange(true));
       });
 
       if (boardEl) {
-        const btns = boardEl.querySelectorAll(".slider-btn");
-        btns.forEach((btn) => {
+        boardEl.querySelectorAll(".slider-btn").forEach((btn) => {
           btn.addEventListener("click", () => {
             const id = btn.dataset.id;
-            if (!id) return;
-            const slider = document.getElementById(id);
+            const slider = id && document.getElementById(id);
             if (!slider) return;
             let value = Number(slider.value);
             if (btn.classList.contains("plus")) value += 1;
             if (btn.classList.contains("minus")) value -= 1;
-            if (value < 0) value = 0;
-            if (value > 5) value = 5;
-            slider.value = String(value);
-            handleSliderChange();
+            slider.value = String(clampInt(value));
+            onBoardChange(true);
           });
         });
       }
@@ -1362,13 +2451,8 @@
         });
       }
 
-      if (clearChaosBtn) {
-        clearChaosBtn.addEventListener("click", handleClearChaos);
-      }
-
-      if (restartClockBtn) {
-        restartClockBtn.addEventListener("click", handleRestartClock);
-      }
+      if (clearChaosBtn) clearChaosBtn.addEventListener("click", handleClearChaos);
+      if (restartClockBtn) restartClockBtn.addEventListener("click", handleRestartClock);
 
       window.addEventListener("resize", () => {
         resizeCanvas();
@@ -1376,110 +2460,132 @@
       });
     }
 
-    function handleSliderChange() {
-      const state = getStateVector();
+    function onBoardChange(persist) {
       const now = Date.now();
-      updateUI(state, now, { persist: true });
+      const newState = getStateVector();
+      const changed = !rawState || !statesEqual(rawState, newState);
+      rawState = newState;
+      if (changed) lastChangeTime = now;
+
+      renderRawLabels();
+
+      if (persist) {
+        recordState(rawState, now);
+        persistHistory();
+        persistLast(rawState, now);
+        if (changed) markCheckin(now);
+      }
+
+      tick();
     }
 
-    // Clear recent noise (last ~30s), keep current state as consolidated point
+    // Clear recent noise (last ~30s), keep current state as one consolidated point
     function handleClearChaos() {
-      if (!stateHistory.length) return;
       const now = Date.now();
       const cutoff = now - 30 * 1000;
 
-      const kept = stateHistory.filter(p => p.t < cutoff);
-      const currentState = getStateVector();
+      stateHistory = stateHistory.filter(p => p.t < cutoff);
+      rawState = getStateVector();
+      recordState(rawState, now);
+      persistHistory();
+      persistLast(rawState, now);
 
-      kept.push({ t: now, state: currentState });
-      stateHistory = kept;
-
-      try {
-        localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
-        localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(currentState));
-        localStorage.setItem(STORAGE_LAST_TIME_KEY, String(now));
-      } catch {
-        // ignore
-      }
-
-      smoothedState = { ...currentState };
-      lastSmoothedTime = now;
-      lastAnalysisState = null;
-      lastAnalysisParams = null;
-      tensionLagState = { ...currentState };
-
-      updateUI(currentState, now, { persist: false });
+      lastChangeTime = now;
+      snapTo(rawState, now);
+      renderRawLabels();
+      tick();
     }
 
     // Restart time axis, keep current configuration
     function handleRestartClock() {
       const now = Date.now();
-      const currentState = getStateVector();
+      rawState = getStateVector();
+      stateHistory = [{ t: now, state: { ...rawState } }];
+      persistHistory();
+      persistLast(rawState, now);
 
-      stateHistory = [{ t: now, state: currentState }];
-
-      try {
-        localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(stateHistory));
-        localStorage.setItem(STORAGE_LAST_STATE_KEY, JSON.stringify(currentState));
-        localStorage.setItem(STORAGE_LAST_TIME_KEY, String(now));
-      } catch {
-        // ignore
-      }
-
-      smoothedState = { ...currentState };
-      lastSmoothedTime = now;
-      lastAnalysisState = null;
-      lastAnalysisParams = null;
-      tensionLagState = { ...currentState };
-
-      updateUI(currentState, now, { persist: false });
+      lastChangeTime = now;
+      snapTo(rawState, now);
+      renderRawLabels();
+      tick();
     }
 
     // -------------------------------------------------------------------------
-    //  STATE / PARAMETERS
+    //  STATE
     // -------------------------------------------------------------------------
 
     function getStateVector() {
       const state = {};
-      dimensions.forEach((d) => {
-        const el = document.getElementById(d.id);
-        const v = el ? parseInt(el.value, 10) : 0;
-        state[d.id] = Number.isNaN(v) ? 0 : v;
+      DIM_IDS.forEach((id) => {
+        const el = document.getElementById(id);
+        state[id] = el ? clampInt(el.value) : 0;
       });
       return state;
     }
 
     function applyStateToSliders(state) {
-      dimensions.forEach((d) => {
-        const slider = document.getElementById(d.id);
-        if (!slider) return;
-        const v = state[d.id];
-        if (typeof v === "number" && v >= 0 && v <= 5) {
-          slider.value = String(v);
+      DIM_IDS.forEach((id) => {
+        const slider = document.getElementById(id);
+        if (slider && typeof state[id] === "number") {
+          slider.value = String(clampInt(state[id]));
         }
       });
     }
 
+    // Make the smoothed field jump straight to a state (no gradual settling).
+    function snapTo(state, now) {
+      smoothedState = { ...state };
+      tensionLagState = { ...state };
+      snapshotBuffer = [{ t: now, state: { ...state } }];
+      lastTickTime = now;
+    }
+
+    // -------------------------------------------------------------------------
+    //  THE TICK: the field evolves in real time, whether or not you touch it
+    // -------------------------------------------------------------------------
+
+    function tick() {
+      if (!rawState) return;
+      const now = Date.now();
+      if (!smoothedState) snapTo(rawState, now);
+
+      const dt = Math.max(0, (now - (lastTickTime ?? now)) / 1000);
+      lastTickTime = now;
+
+      const alpha = 1 - Math.exp(-dt / SMOOTH_TAU_SEC);
+      const lagAlpha = 1 - Math.exp(-dt / TENSION_LAG_TAU_SEC);
+
+      DIM_IDS.forEach((id) => {
+        smoothedState[id] += alpha * (rawState[id] - smoothedState[id]);
+        tensionLagState[id] += lagAlpha * (smoothedState[id] - tensionLagState[id]);
+      });
+
+      snapshotBuffer.push({ t: now, state: { ...smoothedState } });
+      const cutoff = now - MOVER_WINDOW_SEC * 1000;
+      while (snapshotBuffer.length > 1 && snapshotBuffer[1].t <= cutoff) {
+        snapshotBuffer.shift();
+      }
+
+      const params = computeParameters(smoothedState);
+      renderParams(params);
+      renderUCF(params);
+      updateAIAnalysis(smoothedState, params);
+      renderTimestamp();
+      renderHistory();
+      checkAccess();
+    }
+
+    // -------------------------------------------------------------------------
+    //  PARAMETERS
+    // -------------------------------------------------------------------------
+
     const norm = (v) => v / 5;
     const expo = (x, p) => Math.pow(Math.min(Math.max(x, 0), 1), p);
 
-    // -------------------------------------------------------------------------
-    //  STATE / PARAMETERS  (CLIPPING + LAGGED RELIEF)
-    // -------------------------------------------------------------------------
-
-    function computeParameters(state) {
+    function computeParameters(state, lagOverride) {
       const {
-        energy,
-        focus,
-        money,
-        relationships,
-        creativeOutput,
-        skillGrowth,
-        health,
-        environment,
-        socialPresence,
-        opportunities,
-        chaosLoad,
+        energy, focus, money, relationships, creativeOutput, skillGrowth,
+        health, environment, socialPresence, opportunities, chaosLoad,
         longTermTrajectory
       } = state;
 
@@ -1532,15 +2638,14 @@
         0.05;
 
       coherence = Math.max(0, Math.min(1, coherence));
-      const coherenceBoosted = Math.pow(coherence, 0.6);
-      const coherencePercent = Math.round(coherenceBoosted * 100);
+      const coherencePercent = Math.round(Math.pow(coherence, 0.6) * 100);
 
-      const tensionSource = tensionLagState || state;
+      const lag = lagOverride || tensionLagState || state;
 
-      const nmLag  = expo(norm(tensionSource.money ?? money),              1.05);
-      const nrLag  = expo(norm(tensionSource.relationships ?? relationships), 1.05);
-      const nhLag  = expo(norm(tensionSource.health ?? health),            1.05);
-      const nenLag = expo(norm(tensionSource.environment ?? environment),  1.05);
+      const nmLag  = expo(norm(lag.money ?? money),                 1.05);
+      const nrLag  = expo(norm(lag.relationships ?? relationships), 1.05);
+      const nhLag  = expo(norm(lag.health ?? health),               1.05);
+      const nenLag = expo(norm(lag.environment ?? environment),     1.05);
 
       let tensionPos =
         0.55 * ncl +
@@ -1554,7 +2659,7 @@
         0.05 * (lambda / 1.5) +
         0.03 * (mu     / 1.5);
 
-      let tensionNeg =
+      const tensionNeg =
         0.22 * nmLag +
         0.22 * nrLag +
         0.20 * nhLag +
@@ -1564,74 +2669,27 @@
       tensionRaw = Math.max(0, Math.min(1.3, tensionRaw));
 
       const redline = 0.6;
-      let tensionNorm = tensionRaw / redline;
-      tensionNorm = Math.max(0, Math.min(1, tensionNorm));
-
-      const tensionBoosted = Math.pow(tensionNorm, 0.8);
-      const tensionScale   = Math.round(tensionBoosted * 100);
+      const tensionNorm = Math.max(0, Math.min(1, tensionRaw / redline));
+      const tensionScale = Math.round(Math.pow(tensionNorm, 0.8) * 100);
 
       return { D, lambda, mu, coherencePercent, tensionScale, chaosLoad };
     }
 
     // -------------------------------------------------------------------------
-    //  UI UPDATE (SMOOTHED)
+    //  RENDERING
     // -------------------------------------------------------------------------
 
-    function updateUI(state, timestampMs, { persist }) {
-      dimensions.forEach((d) => {
-        const v = state[d.id];
-        const labelEl = document.getElementById(d.id + "-value");
-        const pillEl = document.getElementById(d.id + "-pill");
-        if (labelEl) labelEl.textContent = String(v);
-        if (pillEl) pillEl.textContent = String(v);
+    function renderRawLabels() {
+      if (!rawState) return;
+      DIM_IDS.forEach((id) => {
+        const labelEl = document.getElementById(id + "-value");
+        const pillEl = document.getElementById(id + "-pill");
+        if (labelEl) labelEl.textContent = String(rawState[id]);
+        if (pillEl) pillEl.textContent = String(rawState[id]);
       });
+    }
 
-      if (!smoothedState) {
-        smoothedState = { ...state };
-        lastSmoothedTime = timestampMs;
-        tensionLagState = { ...state };
-      } else {
-        const now = timestampMs;
-        const prevTime = lastSmoothedTime ?? now;
-        const dtSec = Math.max(0, (now - prevTime) / 1000);
-
-        const tau = 20;
-        const cappedDt = Math.min(dtSec, 60);
-        let alpha = 1 - Math.exp(-cappedDt / tau);
-
-        if (!Number.isFinite(alpha) || alpha <= 0) alpha = 0.25;
-
-        dimensions.forEach((d) => {
-          const id = d.id;
-          const current = state[id];
-          const prev = smoothedState[id] ?? current;
-          smoothedState[id] = prev + alpha * (current - prev);
-        });
-
-        lastSmoothedTime = now;
-
-        if (!tensionLagState) {
-          tensionLagState = { ...smoothedState };
-        } else {
-          const lagAlpha = 0.02;
-          dimensions.forEach((d) => {
-            const id = d.id;
-            const cur = smoothedState[id];
-            const prevLag = tensionLagState[id] ?? cur;
-            tensionLagState[id] = prevLag + lagAlpha * (cur - prevLag);
-          });
-        }
-      }
-
-      const {
-        D,
-        lambda,
-        mu,
-        coherencePercent,
-        tensionScale,
-        chaosLoad
-      } = computeParameters(smoothedState);
-
+    function renderParams({ D, lambda, mu, coherencePercent, tensionScale }) {
       const Df = D.toFixed(3);
       const lf = lambda.toFixed(3);
       const muf = mu.toFixed(3);
@@ -1645,164 +2703,309 @@
 
       if (coherenceEl) coherenceEl.textContent = coherencePercent + " %";
       if (tensionEl) tensionEl.textContent = tensionScale + " %";
+      const miniCoh = document.getElementById("miniCoh");
+      const miniTen = document.getElementById("miniTen");
+      if (miniCoh) miniCoh.textContent = coherencePercent + "%";
+      if (miniTen) miniTen.textContent = tensionScale + "%";
       if (dValEl) dValEl.textContent = Df;
       if (lambdaValEl) lambdaValEl.textContent = lf;
       if (muValEl) muValEl.textContent = muf;
+    }
 
-      if (timestampEl) {
-        const date = new Date(timestampMs);
-        timestampEl.textContent =
-          "Last change: " +
-          date.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit"
-          });
+    function renderTimestamp() {
+      if (!timestampEl) return;
+      if (!lastChangeTime) {
+        timestampEl.textContent = "Last change: —";
+        return;
       }
-
-      if (persist) {
-        saveToStorage(state, timestampMs);
-      }
-
-      updateAIAnalysis(smoothedState, {
-        D,
-        lambda,
-        mu,
-        coherencePercent,
-        tensionScale,
-        chaosLoad
-      });
-      renderHistory();
+      const date = new Date(lastChangeTime);
+      const sameDay = date.toDateString() === new Date().toDateString();
+      const time = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      timestampEl.textContent = "Last change: " +
+        (sameDay ? time : date.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + time);
     }
 
     // -------------------------------------------------------------------------
-    //  FIELD ANALYSIS: EQUATION-BASED ORACLE ENGINE
+    //  FIELD ANALYSIS
+    //  Plain-English reading up top, the original field reading underneath
+    //  in a collapsible "deeper layer". Same board state = same reading.
     // -------------------------------------------------------------------------
+
+    const SIG_PLAIN = {
+      "The Long Arc": "You're steady, clear, and pointed at what matters. Things are lined up.",
+      "Mirror Gate": "A reflective phase: lots of creative and mental energy, less solid footing. Good for insight, less good for big commitments.",
+      "The Reconfiguration": "A lot is shifting at once. You're in the middle of rearranging things, so expect it to feel messy.",
+      "Fire in the Workshop": "You're creating a lot, but there's a lot of noise around it.",
+      "Scattered Threshold": "You're pulled in many directions under a lot of pressure. Time to simplify.",
+      "Fixed Star": "Grounded, supported, and steady. A good time to follow through on what you've started.",
+      "The Missing Sixty-Fourth": "Several areas are running low at once. Something important isn't getting attention.",
+      "The Directed Beam": "Focused and on track. A great window for deep work.",
+      "Door Without Floor": "Opportunities are showing up, but money is tight. Favor the ones that can pay.",
+      "Clean Instrument": "Your body, your space, and your focus are all in good shape. You're set up to do your best work.",
+      "Signal Crown": "You're visible and creating. A good time to share your work.",
+      "Quiet Battery": "Low energy and low focus, but also low chaos. A recharge phase: rest is the productive move.",
+      "Unresolved Vector": "A mixed picture, with no single theme standing out."
+    };
+
+    const TRY_THIS = {
+      energy: "Protect your sleep tonight, and get some movement or daylight in today.",
+      focus: "Pick one task and give it a 25-minute block with your phone in another room.",
+      money: "Do one small thing that brings money in or stops a leak: send an invoice, follow up on a payment, or cancel something you don't use.",
+      relationships: "Reach out to one person you care about today. A text counts.",
+      creativeOutput: "Make something small, even for 15 minutes. Done beats perfect.",
+      skillGrowth: "Spend 20 minutes practicing or learning one specific thing.",
+      health: "Do one thing for your body today: a walk, a real meal, more water, or an early night.",
+      environment: "Clear one surface or fix one small annoyance in your space.",
+      socialPresence: "Share something today: a post, a message, or a real conversation.",
+      opportunities: "Send one message that could open a door: a pitch, a follow-up, or an ask.",
+      longTermTrajectory: "Write down where you want to be a year from now, and one step this week that points there."
+    };
+
+    const CONSTRUCTIVE_IDS = DIM_IDS.filter(id => id !== "chaosLoad");
+    const labelOf = (key) => dimensions.find(d => d.id === key)?.label || key;
+
+    function seededPick(arr, seed) {
+      const x = Math.sin(seed * 999.13 + 7.77) * 43758.5453;
+      const frac = x - Math.floor(x);
+      return arr[Math.floor(frac * arr.length) % arr.length];
+    }
+
+    function fieldMetrics(state, params) {
+      const { D, lambda, mu, coherencePercent, tensionScale } = params;
+      const n = {};
+      DIM_IDS.forEach(id => {
+        n[id] = Math.max(0, Math.min(1, (state[id] ?? 0) / 5));
+      });
+      const constructive = CONSTRUCTIVE_IDS.reduce((s, id) => s + n[id], 0) / CONSTRUCTIVE_IDS.length;
+      return {
+        n,
+        aliasGap: Math.max(0, Math.min(1.5, 1 - constructive + 0.35 * n.chaosLoad)),
+        inversionPressure: Math.max(0, Math.min(1.5, mu - lambda + 0.25 * n.chaosLoad)),
+        gravityWell: lambda / Math.max(0.08, D + 0.18),
+        phaseSpin: mu + D + n.creativeOutput + n.opportunities - n.focus,
+        coherence: coherencePercent / 100,
+        tension: tensionScale / 100
+      };
+    }
+
+    function getSignature(state, params) {
+      const { D, lambda, mu } = params;
+      const { n, aliasGap, inversionPressure, gravityWell, coherence, tension } = fieldMetrics(state, params);
+
+      if (coherence > 0.78 && tension < 0.35 && gravityWell > 1.25) return "The Long Arc";
+      if (mu > 0.9 && inversionPressure > 0.35) return "Mirror Gate";
+      if (D > 0.85 && mu > 0.75) return "The Reconfiguration";
+      if (n.creativeOutput > 0.75 && n.chaosLoad > 0.55) return "Fire in the Workshop";
+      if (coherence < 0.45 && tension > 0.65) return "Scattered Threshold";
+      if (lambda > 0.9 && D < 0.55) return "Fixed Star";
+      if (aliasGap > 0.62) return "The Missing Sixty-Fourth";
+      if (n.focus > 0.75 && n.longTermTrajectory > 0.7) return "The Directed Beam";
+      if (n.opportunities > 0.7 && n.money < 0.45) return "Door Without Floor";
+      if (n.health > 0.7 && n.environment > 0.7 && n.focus > 0.6) return "Clean Instrument";
+      if (n.socialPresence > 0.7 && n.creativeOutput > 0.65) return "Signal Crown";
+      if (n.energy < 0.35 && n.focus < 0.35 && n.chaosLoad < 0.35) return "Quiet Battery";
+      return "Unresolved Vector";
+    }
+
+    function coherenceBand(pct) {
+      if (pct >= 80) return "very aligned";
+      if (pct >= 65) return "fairly aligned";
+      if (pct >= 45) return "mixed";
+      return "scattered";
+    }
+
+    function tensionBand(pct) {
+      if (pct < 25) return "light";
+      if (pct < 50) return "manageable";
+      if (pct < 75) return "high";
+      return "very high";
+    }
+
+    let analysisBuilt = false;
+
+    function buildAnalysisSkeleton() {
+      if (!aiAnalysisEl || analysisBuilt) return;
+      aiAnalysisEl.innerHTML = `
+        <div class="sig-name" id="anSig"></div>
+        <div class="sig-plain" id="anPlain"></div>
+        <div class="an-grid">
+          <div class="an-row"><span class="an-label">Going well</span><span id="anGood"></span></div>
+          <div class="an-row"><span class="an-label">Weighing on you</span><span id="anWeigh"></span></div>
+          <div class="an-row"><span class="an-label">Needs attention</span><span id="anNeed"></span></div>
+          <div class="an-row"><span class="an-label">Recent changes</span><span id="anMove"></span></div>
+          <div class="an-row"><span class="an-label">Where you're heading</span><span id="anHead"></span></div>
+          <div class="an-row"><span class="an-label">How well it knows you</span><span id="anKnow"></span></div>
+        </div>
+        <div class="an-metrics">
+          <div id="anMetrics"></div>
+          <div class="an-explain">Coherence = how lined up your life areas are (higher is better). Tension = how much pressure you're under (lower is easier).</div>
+        </div>
+        <div class="an-try"><span class="an-label">Try this</span><span id="anTry"></span></div>
+        <details class="an-details" id="anDetails">
+          <summary>Field reading (the deeper layer)</summary>
+          <div class="an-deep" id="anDeep"></div>
+        </details>`;
+
+      const details = document.getElementById("anDetails");
+      if (details) {
+        details.open = safeGet("stateBoardDeepOpen_v1") === "1";
+        details.addEventListener("toggle", () => safeSet("stateBoardDeepOpen_v1", details.open ? "1" : "0"));
+      }
+      analysisBuilt = true;
+    }
+
+    function setText(id, text) {
+      const el = document.getElementById(id);
+      if (el && el.textContent !== text) el.textContent = text;
+    }
+
+    function ucfDeepReading(u) {
+      if (!u || !u.ready) {
+        return "Adaptive loop: the field has not yet completed enough assimilation events to cast a prediction cone.";
+      }
+      const lines = [];
+      const S = u.S ?? 0;
+      if (S >= 0.8) lines.push("The old prophecy retains authority: the prediction cone held, and the field resists correction because it earned it.");
+      else if (S >= 0.4) lines.push("Partial survival: the old cone kept some authority, and new evidence is being woven in.");
+      else lines.push("The old prophecy fades quickly: reality stepped outside the cone, so D widens to represent honest uncertainty.");
+
+      const kSorted = DIM_IDS.slice().sort((a, b) => u.kappa[a] - u.kappa[b]);
+      if (u.Gamma > 0.02) {
+        lines.push(`Γ is positive: probability mass is rotating into the complement, with aliasing strongest around ${labelOf(kSorted[0])}. The model is meeting something it cannot yet see there.`);
+      } else if (u.Gamma < -0.02) {
+        lines.push("Γ is negative: the complement is shrinking. The field is learning your shape.");
+      } else {
+        lines.push("Γ is near zero: the boundary between rendered and complement is holding steady.");
+      }
+
+      if (u.gammaMem >= 0.8) lines.push("Memory inertia is high: the kernel-weighted past is pulling strongly on the present.");
+      else if (u.gammaMem <= 0.5) lines.push("Memory inertia is low: the present has broken from the weighted past.");
+
+      if (u.vA >= 0.8) lines.push("Drift is strong: the field is being carried, not just diffusing.");
+
+      return lines.join("\n") +
+`
+S=${S.toFixed(2)}   γ=${u.gammaMem.toFixed(2)}   |v_A|=${u.vA.toFixed(2)}   Γ=${fmtSigned(u.Gamma, 3)}   η=${u.eta.toFixed(2)}
+α=${u.alpha == null ? "—" : u.alpha.toFixed(2)}   cone=×${u.cone.toFixed(2)}   ⟨κₙ⟩=${u.kappaMean.toFixed(2)}   |Ψ|²=${u.psi.toFixed(2)}   |Ψc|²=${u.psiC.toFixed(2)}`;
+    }
 
     function updateAIAnalysis(state, params) {
       if (!aiAnalysisEl) return;
+      buildAnalysisSkeleton();
 
-      const { D, lambda, mu, coherencePercent, tensionScale, chaosLoad } = params;
+      const { D, lambda, mu, coherencePercent, tensionScale } = params;
+      const m = fieldMetrics(state, params);
+      const { n, aliasGap, inversionPressure, gravityWell, phaseSpin, coherence, tension } = m;
+      const signature = getSignature(state, params);
 
-      const n = {};
-      dimensions.forEach(d => {
-        n[d.id] = Math.max(0, Math.min(1, (state[d.id] ?? 0) / 5));
-      });
+      // What the person actually set on the sliders
+      const raw = rawState || state;
+      const val = (id) => Math.round(raw[id] ?? 0);
 
-      const constructive =
-        (n.energy + n.focus + n.money + n.relationships + n.creativeOutput +
-         n.skillGrowth + n.health + n.environment + n.socialPresence +
-         n.opportunities + n.longTermTrajectory) / 11;
+      // ---- Going well: strongest positive area
+      const byStrength = CONSTRUCTIVE_IDS.slice().sort((a, b) => val(b) - val(a));
+      const top = byStrength[0];
+      const goodText = val(top) >= 3
+        ? `${labelOf(top)} (${val(top)}/5)` + (val(byStrength[1]) >= 4 ? `, ${labelOf(byStrength[1])} (${val(byStrength[1])}/5)` : "")
+        : "Nothing is especially strong right now, and that's okay.";
 
-      const aliasGap = Math.max(0, Math.min(1.5, 1 - constructive + 0.35 * n.chaosLoad));
-      const inversionPressure = Math.max(0, Math.min(1.5, mu - lambda + 0.25 * n.chaosLoad));
-      const gravityWell = lambda / Math.max(0.08, D + 0.18);
-      const phaseSpin = mu + D + n.creativeOutput + n.opportunities - n.focus;
-      const coherence = coherencePercent / 100;
-      const tension = tensionScale / 100;
-
-      const movers = [];
-      if (lastAnalysisState) {
-        dimensions.forEach(d => {
-          const prev = lastAnalysisState[d.id] ?? state[d.id] ?? 0;
-          const cur = state[d.id] ?? 0;
-          const delta = cur - prev;
-          if (Math.abs(delta) > 0.04) {
-            movers.push({ id: d.id, label: d.label, delta });
-          }
-        });
+      // ---- Weighing on you: chaos first, then the heaviest foundation area
+      let weighKey = null;
+      let weighText = "Nothing major right now.";
+      if (val("chaosLoad") >= 3) {
+        weighKey = "chaosLoad";
+        weighText = `Chaos Load (${val("chaosLoad")}/5): a lot on your plate`;
+      } else {
+        const base = ["money", "health", "environment", "relationships"]
+          .slice().sort((a, b) => val(a) - val(b))[0];
+        if (val(base) <= 2) {
+          weighKey = base;
+          weighText = `${labelOf(base)} (${val(base)}/5)`;
+        }
       }
 
+      // ---- Needs attention: weakest positive area not already named
+      const byWeak = CONSTRUCTIVE_IDS.filter(id => id !== weighKey).sort((a, b) => val(a) - val(b));
+      const need = byWeak[0];
+      const allGood = val(need) >= 4;
+      const needText = allGood
+        ? "Everything's in decent shape."
+        : `${labelOf(need)} (${val(need)}/5): your lowest area right now`;
+
+      // ---- Recent changes (last ~2 minutes) + settling
+      const movers = [];
+      const baseline = snapshotBuffer.length ? snapshotBuffer[0].state : state;
+      dimensions.forEach(d => {
+        const delta = (state[d.id] ?? 0) - (baseline[d.id] ?? 0);
+        if (Math.abs(delta) > 0.15) movers.push({ label: d.label, delta });
+      });
       movers.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 
-      lastAnalysisState = { ...state };
-      lastAnalysisParams = { ...params };
+      const settling = [];
+      dimensions.forEach(d => {
+        const target = raw[d.id];
+        const cur = state[d.id];
+        if (Math.abs(target - cur) > 0.25) settling.push(`${d.label} ${cur.toFixed(1)}→${target}`);
+      });
 
-      function seededPick(arr, seed) {
-        const safeSeed = Math.abs(Math.sin(seed * 999 + Date.now() / 60000));
-        return arr[Math.floor(safeSeed * arr.length) % arr.length];
+      let moveText = movers.length
+        ? movers.slice(0, 3).map(mv => `${mv.delta > 0 ? "↑" : "↓"} ${mv.label}`).join("   ")
+        : "No big changes in the last few minutes.";
+      if (settling.length) moveText += "  (the reading is still catching up to your latest change)";
+
+      // ---- Try this: one concrete action
+      let tryText;
+      if (val("chaosLoad") >= 4) {
+        tryText = "Lower the chaos first: write down everything on your plate, pick the 3 that matter most, and postpone or drop the rest.";
+      } else if (tension >= 0.75) {
+        tryText = "Take one thing off your plate today before adding anything new.";
+      } else if (allGood) {
+        tryText = "You're in a good place, so use it. Pick the most important thing on your list and finish it today.";
+      } else {
+        tryText = TRY_THIS[need];
       }
 
-      function strongest(keys) {
-        return keys
-          .map(k => ({ key: k, value: n[k] ?? 0 }))
-          .sort((a, b) => b.value - a.value)[0];
+      setText("anSig", signature);
+      setText("anPlain", SIG_PLAIN[signature] || "");
+      setText("anGood", goodText);
+      setText("anWeigh", weighText);
+      setText("anNeed", needText);
+      setText("anMove", moveText);
+      setText("anMetrics",
+        `Coherence ${coherencePercent}% (${coherenceBand(coherencePercent)})  ·  Tension ${tensionScale}% (${tensionBand(tensionScale)})`);
+      setText("anTry", tryText);
+
+      // ---- From the adaptive loop (complete equation)
+      const u = runUCF();
+      let headText, knowText;
+      if (!u.ready) {
+        const need = Math.max(1, u.needed || 1);
+        headText = `Still learning your patterns. Check in on ${need} more day${need === 1 ? "" : "s"} for a forecast.`;
+        knowText = "Not enough check-ins yet to judge.";
+      } else {
+        const moves = DIM_IDS
+          .map(id => ({ id, f: u.forecast[id], d: u.forecast[id] - val(id) }))
+          .filter(p => Math.abs(p.d) >= 0.4)
+          .sort((a, b) => Math.abs(b.d) - Math.abs(a.d))
+          .slice(0, 2);
+        headText = moves.length
+          ? "Next check-in, likely: " + moves.map(p => `${labelOf(p.id)} ${p.d > 0 ? "up" : "down"} (~${p.f.toFixed(1)})`).join(", ") + "."
+          : "Your pattern says next check-in will look a lot like today.";
+        const kSorted = DIM_IDS.slice().sort((a, b) => u.kappa[b] - u.kappa[a]);
+        const pct = Math.round((u.S ?? 0) * 100);
+        const quality = pct >= 80 ? "very closely" : pct >= 60 ? "fairly well" : pct >= 40 ? "roughly" : "poorly, so something new is going on";
+        knowText = `It predicted your last check-in ${quality} (${pct}%). Most predictable: ${labelOf(kSorted[0])}. Least: ${labelOf(kSorted[kSorted.length - 1])}.`;
       }
+      setText("anHead", headText);
+      setText("anKnow", knowText);
 
-      function weakest(keys) {
-        return keys
-          .map(k => ({ key: k, value: n[k] ?? 0 }))
-          .sort((a, b) => a.value - b.value)[0];
-      }
+      // ---- The deeper layer (original field reading)
+      const q = (v) => Math.round(v * 10) / 10;
+      const seed =
+        q(D) * 7 + q(lambda) * 13 + q(mu) * 17 +
+        q(coherence) * 19 + q(tension) * 23 + q(aliasGap) * 29;
 
-      const attractor = strongest([
-        "energy",
-        "focus",
-        "creativeOutput",
-        "skillGrowth",
-        "opportunities",
-        "longTermTrajectory",
-        "relationships",
-        "socialPresence"
-      ]);
-
-      const resistor = strongest([
-        "chaosLoad",
-        "money",
-        "health",
-        "environment",
-        "relationships"
-      ]);
-
-      const missing = weakest([
-        "energy",
-        "focus",
-        "money",
-        "relationships",
-        "creativeOutput",
-        "skillGrowth",
-        "health",
-        "environment",
-        "socialPresence",
-        "opportunities",
-        "longTermTrajectory"
-      ]);
-
-      const attractorLabel = dimensions.find(d => d.id === attractor.key)?.label || attractor.key;
-      const resistorLabel = dimensions.find(d => d.id === resistor.key)?.label || resistor.key;
-      const missingLabel = dimensions.find(d => d.id === missing.key)?.label || missing.key;
-
-      let signature = "Unresolved Vector";
-      if (coherence > 0.78 && tension < 0.35 && gravityWell > 1.25) {
-        signature = "The Long Arc";
-      } else if (mu > 0.9 && inversionPressure > 0.35) {
-        signature = "Mirror Gate";
-      } else if (D > 0.85 && mu > 0.75) {
-        signature = "The Reconfiguration";
-      } else if (n.creativeOutput > 0.75 && n.chaosLoad > 0.55) {
-        signature = "Fire in the Workshop";
-      } else if (coherence < 0.45 && tension > 0.65) {
-        signature = "Scattered Threshold";
-      } else if (lambda > 0.9 && D < 0.55) {
-        signature = "Fixed Star";
-      } else if (aliasGap > 0.62) {
-        signature = "The Missing Sixty-Fourth";
-      } else if (n.focus > 0.75 && n.longTermTrajectory > 0.7) {
-        signature = "The Directed Beam";
-      } else if (n.opportunities > 0.7 && n.money < 0.45) {
-        signature = "Door Without Floor";
-      } else if (n.health > 0.7 && n.environment > 0.7 && n.focus > 0.6) {
-        signature = "Clean Instrument";
-      } else if (n.socialPresence > 0.7 && n.creativeOutput > 0.65) {
-        signature = "Signal Crown";
-      } else if (n.energy < 0.35 && n.focus < 0.35 && n.chaosLoad < 0.35) {
-        signature = "Quiet Battery";
-      }
-
-      const seed = D * 7 + lambda * 13 + mu * 17 + coherence * 19 + tension * 23 + aliasGap * 29;
-
-      let equationReading = "";
-
+      let equationReading;
       if (D > lambda && D > mu) {
         equationReading = seededPick([
           "D is carrying the equation: diffusion dominates, so the field wants movement, scattering, experiment, and recombination.",
@@ -1823,8 +3026,7 @@
         ], seed);
       }
 
-      let omen = "";
-
+      let omen;
       if (aliasGap > 0.7) {
         omen = "Omen: the field has a visible alias gap. Something is undersampled, skipped, or not yet named.";
       } else if (inversionPressure > 0.55) {
@@ -1845,62 +3047,591 @@
         omen = "Omen: the field is mixed but readable. Follow the strongest attractor, not the loudest irritation.";
       }
 
-      const moverText = movers.length
-        ? movers.slice(0, 3).map(m => `${m.delta > 0 ? "↑" : "↓"} ${m.label}`).join("   ")
-        : "No major movement since the last reading.";
-
       const counselBank = [];
-
       if (D > 0.85) counselBank.push("Counsel: let the board explore, but do not mistake motion for command.");
       if (lambda > 0.85) counselBank.push("Counsel: make the next move serve the long arc.");
       if (mu > 0.85) counselBank.push("Counsel: ask what the event mirrors before asking what it means literally.");
-      if (aliasGap > 0.6) counselBank.push(`Counsel: feed the missing variable: ${missingLabel}.`);
+      if (aliasGap > 0.6) counselBank.push(`Counsel: feed the missing variable: ${labelOf(need)}.`);
       if (tension > 0.65) counselBank.push("Counsel: reduce one source of pressure before drawing a final conclusion.");
       if (coherence > 0.75 && tension < 0.45) counselBank.push("Counsel: the signal is clean enough for action.");
       if (n.chaosLoad > 0.7) counselBank.push("Counsel: cut noise first; interpretation improves after load drops.");
       if (n.focus > 0.7 && n.creativeOutput > 0.7) counselBank.push("Counsel: this is a build window, not merely a think window.");
-
       const counsel = counselBank.length
         ? seededPick(counselBank, seed + 3)
         : "Counsel: adjust one slider honestly and watch which term changes first. That term is the active gate.";
 
-      aiAnalysisEl.textContent =
-`STATE SIGNATURE: ${signature}
-
-${equationReading}
-
-ATTRACTOR: ${attractorLabel}
-RESISTOR / SHADOW LOAD: ${resistorLabel}
-MISSING VARIABLE: ${missingLabel}
-MOVEMENT: ${moverText}
-
-COHERENCE: ${coherencePercent}%   TENSION: ${tensionScale}%
-D=${D.toFixed(3)}   λ=${lambda.toFixed(3)}   μ=${mu.toFixed(3)}
-Alias gap: ${aliasGap.toFixed(2)}   Inversion pressure: ${inversionPressure.toFixed(2)}
-Gravity well: ${gravityWell.toFixed(2)}   Phase spin: ${phaseSpin.toFixed(2)}
+      setText("anDeep",
+`${equationReading}
 
 ${omen}
-${counsel}`;
-    }
+${counsel}
 
-    function normalizeChaos(chaosVal) {
-      const v = Number(chaosVal) || 0;
-      const n = v / 5;
-      if (n < 0) return 0;
-      if (n > 1) return 1;
-      return n;
+${ucfDeepReading(u)}
+
+SETTLING: ${settling.length ? settling.slice(0, 4).join("   ") : "Field has absorbed the current board."}
+D=${D.toFixed(3)}   λ=${lambda.toFixed(3)}   μ=${mu.toFixed(3)}
+Alias gap: ${aliasGap.toFixed(2)}   Inversion pressure: ${inversionPressure.toFixed(2)}
+Gravity well: ${gravityWell.toFixed(2)}   Phase spin: ${phaseSpin.toFixed(2)}`);
     }
 
     // -------------------------------------------------------------------------
-    //  HISTORY GRAPH (with smoothed curves and live tail)
+    //  CHECK-IN STREAKS
+    //  A "check-in" = a day where you updated the board (or tapped Check in).
+    // -------------------------------------------------------------------------
+    const CHECKIN_KEY = "stateBoardCheckins_v1";
+
+    function dayKey(t) {
+      const d = new Date(t);
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+
+    function shiftDay(key, delta) {
+      const [y, m, d] = key.split("-").map(Number);
+      return dayKey(new Date(y, m - 1, d + delta).getTime());
+    }
+
+    function keyToDate(key) {
+      const [y, m, d] = key.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function loadCheckins() {
+      try {
+        const arr = JSON.parse(safeGet(CHECKIN_KEY) || "[]");
+        return new Set(Array.isArray(arr) ? arr : []);
+      } catch {
+        return new Set();
+      }
+    }
+
+    function saveCheckins(set) {
+      safeSet(CHECKIN_KEY, JSON.stringify([...set].sort()));
+    }
+
+    function markCheckin(t) {
+      const set = loadCheckins();
+      const k = dayKey(t ?? Date.now());
+      if (!set.has(k)) {
+        set.add(k);
+        saveCheckins(set);
+      }
+      updateStreakUI();
+    }
+
+    // Days already in your history count as check-ins too.
+    function backfillCheckins() {
+      const set = loadCheckins();
+      const before = set.size;
+      stateHistory.forEach(p => set.add(dayKey(p.t)));
+      if (set.size !== before) saveCheckins(set);
+    }
+
+    function currentStreak(set) {
+      let k = dayKey(Date.now());
+      if (!set.has(k)) k = shiftDay(k, -1); // streak is still alive until today ends
+      let count = 0;
+      while (set.has(k)) {
+        count++;
+        k = shiftDay(k, -1);
+      }
+      return count;
+    }
+
+    function longestStreak(set) {
+      const arr = [...set].sort();
+      let best = 0, run = 0, prev = null;
+      for (const k of arr) {
+        run = prev && shiftDay(prev, 1) === k ? run + 1 : 1;
+        best = Math.max(best, run);
+        prev = k;
+      }
+      return best;
+    }
+
+    function updateStreakUI() {
+      const btn = document.getElementById("streakBadge");
+      if (!btn) return;
+      const set = loadCheckins();
+      const today = set.has(dayKey(Date.now()));
+      const streak = currentStreak(set);
+      let text;
+      if (today) {
+        text = streak >= 2 ? `🔥 ${streak}-day streak` : "✓ Checked in today";
+      } else {
+        text = streak >= 1 ? `Check in · keep your ${streak}-day streak` : "✓ Check in today";
+      }
+      if (btn.textContent !== text) btn.textContent = text;
+      btn.classList.toggle("due", !today);
+      btn.title = today
+        ? "You've checked in today. Come back tomorrow to keep the streak going."
+        : "Update a slider, or tap here if nothing has changed, to check in for today.";
+    }
+
+    // -------------------------------------------------------------------------
+    //  TRIAL-ENDING HEADS-UP
+    // -------------------------------------------------------------------------
+    const NOTICE_DISMISS_KEY = "stateBoardTrialNoticeDismissed_v1";
+    const NOTICE_DAYS = 5;
+
+    function updateTrialNotice() {
+      const notice = document.getElementById("trialNotice");
+      const badge = document.getElementById("accessBadge");
+      if (!notice) return;
+
+      const paid = isPaid();
+      const active = isTrialActive();
+      const days = Math.max(1, Math.ceil(trialMsLeft() / DAY_MS));
+      const ending = !paid && active && days <= NOTICE_DAYS;
+
+      if (badge) badge.classList.toggle("ending", ending);
+
+      const dismissedToday = safeGet(NOTICE_DISMISS_KEY) === dayKey(Date.now());
+      if (ending && !dismissedToday) {
+        setText("trialNoticeText",
+          `Your free trial ends in ${days} day${days === 1 ? "" : "s"}. Everything you've logged stays saved when you unlock.`);
+        notice.classList.remove("hidden-el");
+      } else {
+        notice.classList.add("hidden-el");
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    //  YOUR MONTH IN REVIEW
+    // -------------------------------------------------------------------------
+    const REVIEW_AUTO_KEY = "stateBoardReviewAutoShown_v1";
+    const REVIEW_AUTO_DAYS = 3;
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    function fmtDay(key) {
+      return keyToDate(key).toLocaleDateString([], { month: "short", day: "numeric" });
+    }
+
+    // One snapshot per day: the last state you set that day.
+    function dailySnapshots() {
+      const byDay = new Map();
+      stateHistory.forEach(p => byDay.set(dayKey(p.t), p.state));
+      return [...byDay.entries()]
+        .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+        .map(([key, state]) => {
+          const params = computeParameters(state, state);
+          return { key, state, params, signature: getSignature(state, params), coherence: params.coherencePercent };
+        });
+    }
+
+    function buildReviewHtml() {
+      const set = loadCheckins();
+      const snaps = dailySnapshots();
+      const checkins = set.size;
+      const longest = longestStreak(set);
+
+      if (snaps.length < 2) {
+        return `<p>Your review fills in as you use StateBoard. Check in a few more days and your patterns will show up here.</p>
+                <div class="review-tiles">
+                  <div class="review-tile"><div class="rt-num">${checkins}</div><div class="rt-label">Days checked in</div></div>
+                  <div class="review-tile"><div class="rt-num">${longest}</div><div class="rt-label">Longest streak</div></div>
+                </div>`;
+      }
+
+      // Most common signature
+      const sigCount = {};
+      snaps.forEach(s => { sigCount[s.signature] = (sigCount[s.signature] || 0) + 1; });
+      const [topSig, topSigCount] = Object.entries(sigCount).sort((a, b) => b[1] - a[1])[0];
+
+      // Best / toughest day
+      const best = snaps.reduce((a, b) => (b.coherence > a.coherence ? b : a));
+      const worst = snaps.reduce((a, b) => (b.coherence < a.coherence ? b : a));
+      const avgCoh = Math.round(snaps.reduce((s, x) => s + x.coherence, 0) / snaps.length);
+
+      // Averages and ranges per area
+      const avg = {}, min = {}, max = {};
+      DIM_IDS.forEach(id => {
+        const vals = snaps.map(s => s.state[id] ?? 0);
+        avg[id] = vals.reduce((a, b) => a + b, 0) / vals.length;
+        min[id] = Math.min(...vals);
+        max[id] = Math.max(...vals);
+      });
+      const strongest = CONSTRUCTIVE_IDS.slice().sort((a, b) => avg[b] - avg[a])[0];
+      const weakest = CONSTRUCTIVE_IDS.slice().sort((a, b) => avg[a] - avg[b])[0];
+      const swingiest = DIM_IDS.slice().sort((a, b) => (max[b] - min[b]) - (max[a] - min[a]))[0];
+
+      const lines = [];
+      lines.push(`Your most common state was <b>${escapeHtml(topSig)}</b> (${topSigCount} of ${snaps.length} days). ${escapeHtml(SIG_PLAIN[topSig] || "")}`);
+      lines.push(`Your best day was <b>${fmtDay(best.key)}</b>, with coherence at ${best.coherence}% (${escapeHtml(best.signature)}).`);
+      if (worst.key !== best.key) {
+        lines.push(`Your toughest day was <b>${fmtDay(worst.key)}</b>, with coherence at ${worst.coherence}%.`);
+      }
+      lines.push(`Strongest area overall: <b>${labelOf(strongest)}</b> (average ${avg[strongest].toFixed(1)}/5).`);
+      lines.push(`Needed the most care: <b>${labelOf(weakest)}</b> (average ${avg[weakest].toFixed(1)}/5). ${escapeHtml(TRY_THIS[weakest])}`);
+      if (max[swingiest] - min[swingiest] >= 2) {
+        lines.push(`Most up-and-down: <b>${labelOf(swingiest)}</b>, which ranged from ${min[swingiest]} to ${max[swingiest]}.`);
+      }
+      if (avg.chaosLoad >= 3.5) {
+        lines.push(`Chaos Load averaged <b>${avg.chaosLoad.toFixed(1)}/5</b>. That's been a constant pressure.`);
+      }
+      if (snaps.length >= 4) {
+        const half = Math.floor(snaps.length / 2);
+        const first = snaps.slice(0, half).reduce((s, x) => s + x.coherence, 0) / half;
+        const second = snaps.slice(half).reduce((s, x) => s + x.coherence, 0) / (snaps.length - half);
+        const diff = Math.round(second - first);
+        if (Math.abs(diff) >= 3) {
+          lines.push(`Your coherence went <b>${diff > 0 ? "up" : "down"}</b> from ${Math.round(first)}% in the first half to ${Math.round(second)}% in the second half.`);
+        } else {
+          lines.push(`Your coherence held <b>steady</b> at around ${avgCoh}% across the whole stretch.`);
+        }
+      }
+
+      return `
+        <div class="review-tiles">
+          <div class="review-tile"><div class="rt-num">${checkins}</div><div class="rt-label">Days checked in</div></div>
+          <div class="review-tile"><div class="rt-num">${longest}</div><div class="rt-label">Longest streak</div></div>
+          <div class="review-tile"><div class="rt-num">${avgCoh}%</div><div class="rt-label">Average coherence</div></div>
+        </div>
+        <ul class="review-list">${lines.map(l => `<li>${l}</li>`).join("")}</ul>`;
+    }
+
+    function openReview() {
+      const overlay = document.getElementById("reviewOverlay");
+      if (!overlay) return;
+
+      const snaps = stateHistory.length ? stateHistory[0].t : Date.now();
+      const sinceKey = dayKey(snaps);
+      setText("reviewSub", "Since " + fmtDay(sinceKey));
+      document.getElementById("reviewBody").innerHTML = buildReviewHtml();
+
+      const paid = isPaid();
+      const buyBtn = document.getElementById("reviewBuyBtn");
+      const codeBtn = document.getElementById("reviewCodeBtn");
+      const note = document.getElementById("reviewFooterNote");
+      buyBtn.classList.toggle("hidden-el", paid);
+      codeBtn.classList.toggle("hidden-el", paid);
+      if (!paid && isTrialActive()) {
+        const days = Math.max(1, Math.ceil(trialMsLeft() / DAY_MS));
+        note.textContent = `Free trial: ${days} day${days === 1 ? "" : "s"} left. Unlock to keep all of this.`;
+      } else {
+        note.textContent = "";
+      }
+      overlay.classList.remove("hidden");
+    }
+
+    function closeReview() {
+      const overlay = document.getElementById("reviewOverlay");
+      if (overlay) overlay.classList.add("hidden");
+    }
+
+    function initReview() {
+      const reviewBtn = document.getElementById("reviewBtn");
+      const closeBtn = document.getElementById("reviewClose");
+      const buyBtn = document.getElementById("reviewBuyBtn");
+      const codeBtn = document.getElementById("reviewCodeBtn");
+      if (reviewBtn) reviewBtn.addEventListener("click", openReview);
+      if (closeBtn) closeBtn.addEventListener("click", closeReview);
+      if (buyBtn) buyBtn.href = BUY_URL;
+      if (codeBtn) {
+        codeBtn.addEventListener("click", () => {
+          closeReview();
+          showLock(isTrialActive() ? "enter" : "expired");
+        });
+      }
+    }
+
+    // Show the review on its own, once, a few days before the trial ends.
+    function maybeAutoReview() {
+      if (isPaid() || !isTrialActive() || lockMode !== null) return;
+      if (safeGet(REVIEW_AUTO_KEY) === "1") return;
+      if (Math.ceil(trialMsLeft() / DAY_MS) > REVIEW_AUTO_DAYS) return;
+      if (loadCheckins().size < 3) return;
+      const onboarding = document.getElementById("onboardingOverlay");
+      if (onboarding && !onboarding.classList.contains("hidden")) return;
+      safeSet(REVIEW_AUTO_KEY, "1");
+      openReview();
+    }
+
+    // -------------------------------------------------------------------------
+    //  UCF ADAPTIVE ENGINE (complete working form)
+    //  Runs alongside the original D / λ / μ engine without changing it.
+    //  Each day's check-in is an assimilation event:
+    //    1. the engine predicts your next check-in (the prediction cone)
+    //    2. scores how well it did: survival score S
+    //    3. widens/relaxes the cone:      D(t⁺) = D(t⁻)·(1 + c(1 − S))
+    //    4. reweights each slider:        κₙ(t⁺) = κₙ(t⁻) + r(Sₙ − κₙ(t⁻))
+    //    5. tracks the unity constraint:  |Ψ|² + |Ψc|² = 1, Γ = d/dt |Ψc|²
+    //    6. fuses old + new predictions:  Ψ_future = α Ψ_old + (1 − α) Ψ_new,
+    //                                     α = e^(−βΔt)·S
+    //  Memory uses the kernel K(Δt) = κ₀e^(−αΔt) + κ₁cos(ωΔt)e^(−βΔt).
+    // -------------------------------------------------------------------------
+    const UCF = {
+      // Memory kernel (Δt in days): smooth fade + weekly rhythm
+      K0: 1.0,
+      K_ALPHA: 0.25,
+      K1: 0.35,
+      K_OMEGA: (2 * Math.PI) / 7,
+      K_BETA: 0.15,
+      C_SENS: 0.5,        // c: how sharply one miss widens the cone
+      CONE_RELAX: 0.8,    // how fast the cone tightens back after good predictions
+      CONE_MAX: 4,
+      KAPPA_RATE: 0.2,    // r: learning rate for each slider's κₙ
+      FUSION_BETA: 0.3,   // β: how fast old predictions lose authority (per day)
+      SIGMA0: 0.9,        // base cone width, in slider units
+      S_SMOOTH: 0.35,     // smoothing for the running survival score
+      MIN_DAYS: 3         // check-in days needed before forecasts mean anything
+    };
+
+    let ucfCache = { key: null, result: null };
+
+    function ucfKernel(dtDays) {
+      return UCF.K0 * Math.exp(-UCF.K_ALPHA * dtDays) +
+             UCF.K1 * Math.cos(UCF.K_OMEGA * dtDays) * Math.exp(-UCF.K_BETA * dtDays);
+    }
+
+    const clamp05 = (v) => Math.max(0, Math.min(5, v));
+
+    // γ ∫ K(t−τ) Ψ(τ) dτ: kernel-weighted memory of days 0..idx, seen from day idx
+    function ucfMemory(series, idx) {
+      const tNow = series[idx].t;
+      const m = {};
+      DIM_IDS.forEach(id => { m[id] = 0; });
+      let wsum = 0;
+      for (let j = 0; j <= idx; j++) {
+        const w = Math.max(0, ucfKernel((tNow - series[j].t) / DAY_MS));
+        wsum += w;
+        DIM_IDS.forEach(id => { m[id] += w * (series[j].state[id] ?? 0); });
+      }
+      if (wsum <= 0) return { ...series[idx].state };
+      DIM_IDS.forEach(id => { m[id] /= wsum; });
+      return m;
+    }
+
+    function runUCF() {
+      const last = stateHistory.length ? stateHistory[stateHistory.length - 1] : null;
+      const cacheKey = stateHistory.length + ":" + (last ? last.t : 0) + ":" + dayKey(Date.now());
+      if (ucfCache.key === cacheKey) return ucfCache.result;
+
+      // One observation per day: the last state you set that day
+      const byDay = new Map();
+      stateHistory.forEach(p => byDay.set(dayKey(p.t), p.state));
+      const series = [...byDay.entries()]
+        .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+        .map(([key, state]) => ({ key, t: keyToDate(key).getTime() + 12 * 3600000, state }));
+
+      const n = series.length;
+      const kappa = {};
+      DIM_IDS.forEach(id => { kappa[id] = 0.5; });
+
+      let cone = 1;
+      let sEma = null;
+      let psiC = 0.5, psiCPrev = 0.5;
+      let Gamma = 0;
+      let lastS = null, lastSd = null, alpha = null;
+      let pred = null, lastDrift = null, lastMemory = null;
+      const errors = [];
+      const sHistory = [];
+
+      for (let i = 0; i < n; i++) {
+        const x = series[i].state;
+        const dtc = i > 0 ? Math.max(1, (series[i].t - series[i - 1].t) / DAY_MS) : 1;
+
+        // --- Assimilation: score the prediction cone against what happened
+        if (pred) {
+          const sigma = UCF.SIGMA0 * cone * Math.sqrt(dtc);
+          const Sd = {};
+          let sum = 0;
+          DIM_IDS.forEach(id => {
+            const e = (x[id] ?? 0) - pred[id];
+            errors.push(e);
+            Sd[id] = Math.exp(-(e * e) / (2 * sigma * sigma));
+            sum += Sd[id];
+          });
+          const S = sum / DIM_IDS.length;
+
+          // D(t⁺) = D(t⁻)·(1 + c(1 − S)), then relax so good streaks tighten it
+          cone = Math.min(UCF.CONE_MAX, cone * (1 + UCF.C_SENS * (1 - S)));
+          cone = 1 + (cone - 1) * UCF.CONE_RELAX;
+
+          // κₙ(t⁺) = κₙ(t⁻) + r(Sₙ − κₙ(t⁻))
+          DIM_IDS.forEach(id => { kappa[id] += UCF.KAPPA_RATE * (Sd[id] - kappa[id]); });
+
+          // Unity: |Ψ|² = what the model renders, |Ψc|² = what it misses
+          sEma = sEma == null ? S : sEma + UCF.S_SMOOTH * (S - sEma);
+          psiCPrev = psiC;
+          psiC = 1 - sEma;
+          Gamma = (psiC - psiCPrev) / dtc; // Γ = d/dt |Ψc|²
+
+          lastS = S;
+          lastSd = Sd;
+          sHistory.push({ key: series[i].key, S });
+        }
+
+        // --- New prediction from here: memory + drift (advection)
+        const M = ucfMemory(series, i);
+        const prevM = i > 0 ? ucfMemory(series, i - 1) : M;
+        const drift = {};
+        const fresh = {};
+        DIM_IDS.forEach(id => {
+          drift[id] = (x[id] ?? 0) - prevM[id];
+          fresh[id] = clamp05(0.6 * ((x[id] ?? 0) + 0.35 * drift[id]) + 0.4 * M[id]);
+        });
+
+        // --- Memory-weighted fusion of old and new prediction cones
+        if (pred && lastS != null) {
+          alpha = Math.exp(-UCF.FUSION_BETA * dtc) * lastS;
+          const next = {};
+          DIM_IDS.forEach(id => { next[id] = clamp05(alpha * pred[id] + (1 - alpha) * fresh[id]); });
+          pred = next;
+        } else {
+          pred = fresh;
+        }
+
+        lastDrift = drift;
+        lastMemory = M;
+      }
+
+      let result;
+      if (n === 0) {
+        result = { ready: false, days: 0, needed: UCF.MIN_DAYS, kappa, cone: 1 };
+      } else {
+        const xLast = series[n - 1].state;
+        const meanAbs = DIM_IDS.reduce((s, id) => s + Math.abs((xLast[id] ?? 0) - lastMemory[id]), 0) / DIM_IDS.length;
+        const vA = Math.sqrt(DIM_IDS.reduce((s, id) => s + lastDrift[id] * lastDrift[id], 0) / DIM_IDS.length);
+        const recent = errors.slice(-DIM_IDS.length * 14);
+        const eta = recent.length ? Math.sqrt(recent.reduce((s, e) => s + e * e, 0) / recent.length) : 0;
+        const kappaMean = DIM_IDS.reduce((s, id) => s + kappa[id], 0) / DIM_IDS.length;
+
+        result = {
+          ready: n >= UCF.MIN_DAYS && sHistory.length >= 2,
+          days: n,
+          needed: Math.max(0, UCF.MIN_DAYS - n),
+          kappa,
+          kappaMean,
+          cone,
+          sigma: UCF.SIGMA0 * cone,
+          S: lastS,
+          Sd: lastSd,
+          psi: sEma == null ? 0.5 : sEma,
+          psiC: sEma == null ? 0.5 : 1 - sEma,
+          Gamma,
+          alpha,
+          gammaMem: Math.max(0, Math.min(1, 1 - meanAbs / 2)),
+          vA,
+          drift: lastDrift,
+          memory: lastMemory,
+          eta,
+          forecast: pred,
+          sHistory
+        };
+      }
+
+      ucfCache = { key: cacheKey, result };
+      return result;
+    }
+
+    // ---- Display of the adaptive loop -------------------------------------
+    let ucfBuilt = false;
+
+    function buildUCFPanel() {
+      if (ucfBuilt) return;
+      const grid = document.getElementById("kappaGrid");
+      if (!grid) return;
+      dimensions.forEach(d => {
+        const row = document.createElement("div");
+        row.className = "kappa-row";
+        row.innerHTML =
+          `<span class="kappa-label">${d.label}</span>` +
+          `<span class="kappa-track"><span class="kappa-fill" id="kappa-${d.id}"></span></span>` +
+          `<span class="kappa-val" id="kappaVal-${d.id}">—</span>`;
+        const fill = row.querySelector(".kappa-fill");
+        fill.style.background = DIM_COLORS[d.id];
+        grid.appendChild(row);
+      });
+      ucfBuilt = true;
+    }
+
+    function fmtSigned(v, digits) {
+      return (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(digits);
+    }
+
+    function renderUCF(params) {
+      buildUCFPanel();
+      const u = runUCF();
+
+      // Status line
+      if (!u.ready) {
+        const need = Math.max(1, u.needed || (UCF.MIN_DAYS - u.days) || 1);
+        setText("ucfStatus",
+          `Learning your patterns: check in on ${need} more day${need === 1 ? "" : "s"} and the adaptive loop starts predicting. (${u.days} so far)`);
+      } else {
+        setText("ucfStatus",
+          `Learning from ${u.days} days of check-ins. Each new check-in is scored against the forecast and the field re-tunes itself.`);
+      }
+
+      // Unity bar
+      const psi = u.psi ?? 0.5;
+      const bar = document.getElementById("unityPsi");
+      if (bar) bar.style.width = (psi * 100).toFixed(1) + "%";
+      setText("unityLabel",
+        `|Ψ|² ${psi.toFixed(2)} rendered  +  |Ψc|² ${(1 - psi).toFixed(2)} complement  =  1`);
+
+      // Pills
+      setText("ucfS", u.S == null ? "—" : Math.round(u.S * 100) + "%");
+      setText("ucfGamma", u.gammaMem == null ? "—" : u.gammaMem.toFixed(2));
+      setText("ucfV", u.vA == null ? "—" : u.vA.toFixed(2));
+      setText("ucfBigGamma", u.Gamma == null ? "—" : fmtSigned(u.Gamma, 3));
+      setText("ucfEta", u.eta == null ? "—" : u.eta.toFixed(2));
+      setText("ucfAlpha", u.alpha == null ? "—" : u.alpha.toFixed(2));
+      setText("ucfCone", "×" + (u.cone ?? 1).toFixed(2));
+
+      // κₙ bars
+      DIM_IDS.forEach(id => {
+        const k = u.kappa[id] ?? 0.5;
+        const fill = document.getElementById("kappa-" + id);
+        if (fill) fill.style.width = (k * 100).toFixed(0) + "%";
+        setText("kappaVal-" + id, k.toFixed(2));
+      });
+
+      // Forecast
+      if (u.ready && u.forecast) {
+        const raw = rawState || {};
+        const sig = u.sigma;
+        const parts = DIM_IDS
+          .map(id => ({ id, f: u.forecast[id], d: u.forecast[id] - (raw[id] ?? 0) }))
+          .sort((a, b) => Math.abs(b.d) - Math.abs(a.d))
+          .slice(0, 4)
+          .map(p => `${labelOf(p.id)} ~${p.f.toFixed(1)}${Math.abs(p.d) >= 0.4 ? (p.d > 0 ? " ↑" : " ↓") : ""}`);
+        setText("forecastLine", parts.join("   ·   ") + `     (cone ±${sig.toFixed(1)})`);
+      } else {
+        setText("forecastLine", "Forecast appears after a few days of check-ins.");
+      }
+
+      // Live complete-form parameter line
+      if (paramsEl && params) {
+        const { D, lambda, mu } = params;
+        const g = u.gammaMem ?? 0;
+        const v = u.vA ?? 0;
+        const km = u.kappaMean ?? 0.5;
+        const G = u.Gamma ?? 0;
+        const eta = u.eta ?? 0;
+        paramsEl.textContent =
+          `i ∂Ψ/∂t = − ${D.toFixed(3)}·${(u.cone ?? 1).toFixed(2)} ∇†∇Ψ + (${lambda.toFixed(3)}/|z|²)Ψ + ${mu.toFixed(3)} Ψ*(t,1/z)` +
+          ` + ${g.toFixed(2)} ∫K(t−τ)Ψ dτ − i·${v.toFixed(2)} v_A·∇Ψ + Σκₙ(${km.toFixed(2)})OₙΨ` +
+          ` − i(${fmtSigned(G, 3)})Ψ + η(${eta.toFixed(2)})`;
+      }
+
+      return u;
+    }
+
+    // -------------------------------------------------------------------------
+    //  HISTORY GRAPH
     // -------------------------------------------------------------------------
 
     function resizeCanvas() {
       if (!historyCanvas || !historyCtx) return;
       const rect = historyCanvas.getBoundingClientRect();
-      historyCanvas.width = rect.width * window.devicePixelRatio;
-      historyCanvas.height = rect.height * window.devicePixelRatio;
-      historyCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      const dpr = window.devicePixelRatio || 1;
+      historyCanvas.width = Math.max(1, Math.round(rect.width * dpr));
+      historyCanvas.height = Math.max(1, Math.round(rect.height * dpr));
+      historyCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     function renderHistory() {
@@ -1911,95 +3642,71 @@ ${counsel}`;
 
       historyCtx.clearRect(0, 0, width, height);
 
+      const leftPad = 22;
+      const rightPad = 6;
+      const topPad = 8;
+      const bottomPad = 8;
+      const plotW = width - leftPad - rightPad;
+      const plotH = height - topPad - bottomPad;
+
+      // Grid + 0–5 labels
+      historyCtx.strokeStyle = "rgba(255,255,255,0.12)";
+      historyCtx.lineWidth = 1;
+      historyCtx.fillStyle = "rgba(200,206,230,0.55)";
+      historyCtx.font = "10px system-ui, sans-serif";
+      historyCtx.textAlign = "right";
+      historyCtx.textBaseline = "middle";
+      historyCtx.beginPath();
+      for (let v = 0; v <= 5; v++) {
+        const y = topPad + plotH * (1 - v / 5);
+        historyCtx.moveTo(leftPad, y);
+        historyCtx.lineTo(leftPad + plotW, y);
+        historyCtx.fillText(String(v), leftPad - 6, y);
+      }
+      historyCtx.stroke();
+
       if (!stateHistory.length) return;
 
       const now = Date.now();
       const windowMs = WINDOW_MS[activeWindowKey] || WINDOW_MS["10m"];
       const startTime = now - windowMs;
 
-      const basePoints = stateHistory.filter(p => p.t >= startTime);
-      if (basePoints.length < 1) return;
-
-      const lastBase = basePoints[basePoints.length - 1];
-
-      let points = basePoints;
-      if (lastBase.t < now) {
-        points = basePoints.concat({
-          t: now,
-          state: lastBase.state
-        });
+      // Points inside the window, plus the last state before it (so a line
+      // that hasn't changed in a while still shows across the whole window).
+      let points = [];
+      let before = null;
+      for (const p of stateHistory) {
+        if (p.t < startTime) before = p;
+        else points.push(p);
       }
+      if (before) points.unshift({ t: startTime, state: before.state });
+      if (!points.length) return;
+
+      // Live tail: extend the current state to "now"
+      const lastPoint = points[points.length - 1];
+      const tailState = rawState || lastPoint.state;
+      if (lastPoint.t < now) points.push({ t: now, state: tailState });
 
       if (points.length < 2) return;
 
       const tMin = points[0].t;
-      const tMax = points[points.length - 1].t;
+      const tMax = now;
       const xSpan = (tMax - tMin) || 1;
-
-      const leftPad = 24;
-      const rightPad = 6;
-      const topPad = 6;
-      const bottomPad = 16;
-
-      const plotW = width - leftPad - rightPad;
-      const plotH = height - topPad - bottomPad;
-
-      historyCtx.strokeStyle = "rgba(255,255,255,0.12)";
-      historyCtx.lineWidth = 1;
-      historyCtx.beginPath();
-      for (let v = 0; v <= 5; v++) {
-        const y = topPad + plotH * (1 - v / 5);
-        historyCtx.moveTo(leftPad, y);
-        historyCtx.lineTo(leftPad + plotW, y);
-      }
-      historyCtx.stroke();
-
-      const colors = [
-        "#4dd0e1",
-        "#ffb74d",
-        "#ce93d8",
-        "#81c784",
-        "#f06292",
-        "#64b5f6",
-        "#ba68c8",
-        "#ff8a65",
-        "#4db6ac",
-        "#fff176",
-        "#e57373",
-        "#90a4ae"
-      ];
-
-      let colorIndex = 0;
 
       dimensions.forEach((dim) => {
         if (!activeDimensions.has(dim.id)) return;
 
-        const col = colors[colorIndex % colors.length];
-        colorIndex++;
-
-        let lastSmooth = null;
-        const smoothAlpha = 0.4;
-
         historyCtx.beginPath();
         points.forEach((p, idx) => {
-          const raw = p.state[dim.id] ?? 0;
-          if (lastSmooth === null) {
-            lastSmooth = raw;
-          } else {
-            lastSmooth = lastSmooth + smoothAlpha * (raw - lastSmooth);
-          }
-
+          const v = p.state[dim.id] ?? 0;
           const x = leftPad + ((p.t - tMin) / xSpan) * plotW;
-          const y = topPad + plotH * (1 - lastSmooth / 5);
-
-          if (idx === 0) {
-            historyCtx.moveTo(x, y);
-          } else {
-            historyCtx.lineTo(x, y);
-          }
+          const y = topPad + plotH * (1 - v / 5);
+          if (idx === 0) historyCtx.moveTo(x, y);
+          else historyCtx.lineTo(x, y);
         });
-        historyCtx.strokeStyle = col;
+        historyCtx.strokeStyle = DIM_COLORS[dim.id];
         historyCtx.lineWidth = 1.5;
+        historyCtx.lineJoin = "round";
         historyCtx.stroke();
       });
     }
